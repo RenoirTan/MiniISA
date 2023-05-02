@@ -1,6 +1,6 @@
 #ifndef MINIISA_CONFIG_H
 #   define MINIISA_CONFIG_H
 
-#mesondefine VERSION
+#mesondefine MINIISA_VERSION
 
 #endif
