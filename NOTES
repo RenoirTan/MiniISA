@@ -1,0 +1,57 @@
+r0 to r9, rs0, rs1, rbp, rsp, rip, flg
+0000 to 1111
+
+flg bits:
+0: zf
+1: cf
+
+s: q 11, d 10, w 01, b 00
+t: i 01, u 00, f 10 or 11
+
+set <reg> <val> ; t,s 1000_0000 <reg><t,s> <4 bytes, little endian>
+mov <reg> <reg> ; s 1000_01<s> <reg><reg>
+ldr <reg> <reg> ; s 1000_10<s> <reg><reg>
+str <reg> <reg> ; s 1000_11<s> <reg><reg>
+psh <reg> ; s 1000_0001 <reg><t,s>
+pop <reg> ; s 1000_0010 <reg><t,s>
+xcg <regq> <regq> ; 1000_0011 <reg><reg>
+
+cvt<t,s> <reg> ; t,s 1100_<t,s> <reg><t,s>
+
+add <reg> <reg> ; t,s 0001_<t,s> <reg><reg>
+
+sub <reg> <reg> ; t,s 0010_<t,s> <reg><reg>
+
+mul <reg> <reg> ; t,s 0011_<t,s> <reg><reg>
+
+div <reg> <reg> ; t,s 0100_<t,s> <reg><reg>
+
+and <reg> <reg> ; s 0101_00<s> <reg><reg>
+ior <reg> <reg> ; s 0101_01<s> <reg><reg>
+xor <reg> <reg> ; s 0101_10<s> <reg><reg>
+not <reg> ; s 0101_11<s> <reg><reg>
+
+shl <reg> <regbu> ; s 0110_00<s> <reg><reg>
+sal <reg> <regbu> ; s 0110_01<s> <reg><reg>
+shr <reg> <regbu> ; s 0110_10<s> <reg><reg>
+sar <reg> <regbu> ; s 0110_11<s> <reg><reg>
+
+rol <reg> <regbu> ; s 0111_00<s> <reg><reg>
+ror <reg> <regbu> ; s 0111_10<s> <reg><reg>
+
+cmp <reg> <reg> ; t,s 1011_<t,s> <reg><reg>
+
+jzr <reg> <reg> ; t,s 1110_<t,s> <reg><reg>
+jnz <reg> <reg> ; t,s 1110_<t,s> <reg><reg>
+jeq <reg> ; 1001_0010 <reg>_0000
+jne <reg> ; 1001_0011 <reg>_0000
+jlt <reg> ; 1001_0100 <reg>_0000
+jle <reg> ; 1001_0101 <reg>_0000
+jgt <reg> ; 1001_0110 <reg>_0000
+jge <reg> ; 1001_0111 <reg>_0000
+
+int <valbu> ; 1010_1010 <valbu>
+hlt ; 1010_0101 1010_0101
+nop ; 0000_0000 0000_0000
+
+extended ; 1111_1111 <3 bytes>
