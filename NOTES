@@ -54,4 +54,4 @@ int <valbu> ; 1010_1010 <valbu>
 hlt ; 1010_0101 1010_0101
 nop ; 0000_0000 0000_0000
 
-extended ; 1111_1111 <3 bytes>
+extended ; 1110_1110 <3 bytes>

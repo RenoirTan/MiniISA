@@ -1,4 +1,4 @@
-minias_src = ['main.c']
+minias_src = ['main.c', 'tokenizer.c']
 minias_exe = executable(
     'minias',
     minias_src,
