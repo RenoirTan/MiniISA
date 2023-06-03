@@ -2,5 +2,6 @@
 #   define MINIISA_CONFIG_H
 
 #mesondefine MINIISA_VERSION
+#mesondefine MINIISA_DEBUG
 
 #endif

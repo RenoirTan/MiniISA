@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <extra.h>
 #include "tokenizer.h"
 
 tokenizer_t *init_tokenizer(tokenizer_t *t) {
@@ -48,7 +49,7 @@ static inline char grab_next_char(tokenizer_t *t) {
     if (cur_char != EOF) {
         t->buf_idx++;
     }
-    printf("cur_char: '%c' %hhu\n", cur_char, cur_char);
+    __DBG("cur_char: '%c' %hhu\n", cur_char, cur_char);
     return cur_char;
 }
 
@@ -79,7 +80,7 @@ int get_next_token(tokenizer_t *t, char *token) {
     while (go_on) {
         char next_char = grab_next_char(t);
         if (t->is_comment) {
-            puts("is_comment");
+            __DBG("is_comment\n");
             t->last_char = next_char;
             if (next_char == '\r' || next_char == '\n') {
                 t->is_comment = 0;
@@ -87,11 +88,11 @@ int get_next_token(tokenizer_t *t, char *token) {
             continue;
         }
         if ((isspace(next_char) || next_char == ';') && t->token_len > 0) { // space or ;
-            puts("is_space");
+           __DBG("is_space\n");
             return_token(t, token);
             go_on = 0;
         } else if (isalpha(next_char) || next_char == '_') { // char is [A-Za-z_]
-            puts("is_alpha");
+            __DBG("is_alpha\n");
             if (t->detected_token_type == IDENTIFIER_TOKEN) {
                 if (grow_token(t, next_char)) {
                     return 1;
@@ -106,7 +107,7 @@ int get_next_token(tokenizer_t *t, char *token) {
                 return 1;
             }
         } else if (isdigit(next_char)) { // char is [0-9]
-            puts("is_digit");
+            __DBG("is_digit\n");
             if (t->detected_token_type == INT_TOKEN || t->detected_token_type == FLOAT_TOKEN) {
                 if (grow_token(t, next_char)) {
                     return 1;
@@ -119,19 +120,19 @@ int get_next_token(tokenizer_t *t, char *token) {
                 t->detected_token_type = INT_TOKEN;
             }
         } else if (next_char == '#') { // char is #
-            puts("is_pound");
+            __DBG("is_pound\n");
             return_token(t, token);
             go_on = 0;
             t->is_comment = 1;
         } else if (next_char == '.') { // char is .
-            puts("is_dot");
+            __DBG("is_do\n");
             if (t->detected_token_type == INT_TOKEN) {
                 t->detected_token_type = FLOAT_TOKEN;
             } else {
                 return 1;
             }
         } else {
-            puts("is_other");
+            __DBG("is_other\n");
             return 1;
         }
         t->last_char = next_char;
