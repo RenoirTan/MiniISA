@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include <config.h>
+#include "tokenizer.h"
 
 typedef struct args {
     char *asm_fp;
@@ -31,5 +32,19 @@ int main(int argc, char **argv) {
     }
     args->asm_fp = argv[1];
     args->obj_fp = argv[2];
+
+    tokenizer_t* tokenizer = init_tokenizer(NULL);
+    FILE *asm_file = fopen(args->asm_fp, "r");
+    set_tokenizer_file(tokenizer, asm_file);
+    char *token = malloc(MAX_TOKEN_LEN+1);
+    int status = 0;
+    while (status != EOF) {
+        status = get_next_token(tokenizer, token);
+        if (status == 1) {
+            return 1;
+        } else {
+            printf("%s\n", token);
+        }
+    }
     return 0;
 }
