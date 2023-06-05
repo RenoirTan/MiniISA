@@ -10,6 +10,12 @@
 #   define MAX_TOKEN_LEN 255
 #   define MAX_BUFFER_LEN 255
 
+#   define TOKENIZER_TOO_LONG 1
+#   define TOKENIZER_UNKNOWN_TOKEN 2
+#   define TOKENIZER_BAD_CHAR_IN_NUM 3
+#   define TOKENIZER_TOO_MANY_DOTS 4
+#   define TOKENIZER_UNRECOGNIZED_CHAR 5
+
 typedef struct tokenizer {
     FILE *infile; // input stream of characters
     char token[MAX_TOKEN_LEN+1]; // token as a string

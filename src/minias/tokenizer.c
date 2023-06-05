@@ -102,26 +102,30 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             __DBG("is_alpha\n");
             if (t->detected_token_type == IDENTIFIER_TOKEN) {
                 if (grow_token(t, next_char)) {
-                    return 1;
+                    return TOKENIZER_TOO_LONG;
                 }
             } else if (t->detected_token_type == UNKNOWN_TOKEN) {
                 if (t->token_len > 0) {
-                    return 1;
+                    return TOKENIZER_UNKNOWN_TOKEN;
                 }
                 grow_token(t, next_char);
                 t->detected_token_type = IDENTIFIER_TOKEN;
             } else {
-                return 1;
+                return TOKENIZER_BAD_CHAR_IN_NUM;
             }
         } else if (isdigit(next_char)) { // char is [0-9]
             __DBG("is_digit\n");
-            if (t->detected_token_type == INT_TOKEN || t->detected_token_type == FLOAT_TOKEN) {
+            if (
+                t->detected_token_type == INT_TOKEN ||
+                t->detected_token_type == FLOAT_TOKEN ||
+                t->detected_token_type == IDENTIFIER_TOKEN
+            ) {
                 if (grow_token(t, next_char)) {
-                    return 1;
+                    return TOKENIZER_TOO_LONG;
                 }
             } else if (t->detected_token_type == UNKNOWN_TOKEN) {
                 if (t->token_len > 0) {
-                    return 1;
+                    return TOKENIZER_UNKNOWN_TOKEN;
                 }
                 grow_token(t, next_char);
                 t->detected_token_type = INT_TOKEN;
@@ -136,11 +140,11 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             if (t->detected_token_type == INT_TOKEN) {
                 t->detected_token_type = FLOAT_TOKEN;
             } else {
-                return 1;
+                return TOKENIZER_TOO_MANY_DOTS;
             }
         } else {
             __DBG("is_other\n");
-            return 1;
+            return TOKENIZER_UNRECOGNIZED_CHAR;
         }
         t->last_char = next_char;
     }
