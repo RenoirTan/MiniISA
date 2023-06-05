@@ -79,6 +79,12 @@ static int grow_token(tokenizer_t *t, char last_char) {
     }
 }
 
+#define _GROW_TOKEN_CHECKED(t, next_char) { \
+    if (grow_token(t, next_char)) { \
+        return TOKENIZER_TOO_LONG; \
+    } \
+}
+
 int get_next_token(tokenizer_t *t, token_t *token) {
     if (t->last_char == EOF) {
         return EOF;
@@ -101,9 +107,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         } else if (isalpha(next_char) || next_char == '_') { // char is [A-Za-z_]
             __DBG("is_alpha\n");
             if (t->detected_token_type == IDENTIFIER_TOKEN) {
-                if (grow_token(t, next_char)) {
-                    return TOKENIZER_TOO_LONG;
-                }
+                _GROW_TOKEN_CHECKED(t, next_char);
             } else if (t->detected_token_type == UNKNOWN_TOKEN) {
                 if (t->token_len > 0) {
                     return TOKENIZER_UNKNOWN_TOKEN;
@@ -120,16 +124,12 @@ int get_next_token(tokenizer_t *t, token_t *token) {
                 t->detected_token_type == FLOAT_TOKEN ||
                 t->detected_token_type == IDENTIFIER_TOKEN
             ) {
-                if (grow_token(t, next_char)) {
-                    return TOKENIZER_TOO_LONG;
-                }
+                _GROW_TOKEN_CHECKED(t, next_char);
             } else if (t->detected_token_type == UNKNOWN_TOKEN) {
                 if (t->token_len > 0) {
                     return TOKENIZER_UNKNOWN_TOKEN;
                 }
-                if (grow_token(t, next_char)) {
-                    return TOKENIZER_TOO_LONG;
-                }
+                grow_token(t, next_char);
                 t->detected_token_type = INT_TOKEN;
             }
         } else if (next_char == '#') { // char is #
@@ -144,9 +144,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             } else {
                 return TOKENIZER_TOO_MANY_DOTS;
             }
-            if (grow_token(t, next_char)) {
-                return TOKENIZER_TOO_LONG;
-            }
+            _GROW_TOKEN_CHECKED(t, next_char);
         } else {
             __DBG("is_other\n");
             return TOKENIZER_UNRECOGNIZED_CHAR;
@@ -155,3 +153,5 @@ int get_next_token(tokenizer_t *t, token_t *token) {
     }
     return 0;
 }
+
+#undef _GROW_TOKEN_CHECKED
