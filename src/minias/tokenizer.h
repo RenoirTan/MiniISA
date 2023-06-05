@@ -23,6 +23,7 @@ typedef struct tokenizer {
     size_t line_no; // current line number
     size_t col_no; // column of current character on this line
     char buffer[MAX_BUFFER_LEN+1]; // buffer of new characters from infile
+    size_t buf_len; // current length of contents in buffer
     size_t buf_idx; // which character in the buffer we are reading
     int last_char; // previous character
     token_type_t detected_token_type; // type of token

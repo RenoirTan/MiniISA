@@ -18,6 +18,7 @@ tokenizer_t *init_tokenizer(tokenizer_t *t) {
     t->line_no = 1;
     t->col_no = 1;
     memset(t->buffer, '\0', MAX_BUFFER_LEN+1);
+    t->buf_len = 0;
     t->buf_idx = MAX_BUFFER_LEN; // must trigger new buffer
     t->last_char = 0;
     t->detected_token_type = UNKNOWN_TOKEN;
@@ -35,22 +36,24 @@ FILE *set_tokenizer_file(tokenizer_t *t, FILE *f) {
 }
 
 static size_t grab_buffer(tokenizer_t *t) {
-    size_t bytes_read = fread(t->buffer, sizeof(char), MAX_BUFFER_LEN, t->infile);
+    t->buf_len = fread(t->buffer, sizeof(char), MAX_BUFFER_LEN, t->infile);
+    __DBG("grab_buffer: t->buf_len = %zu\n", t->buf_len);
     t->buf_idx = 0;
-    return bytes_read;
+    return t->buf_len;
 }
 
-static inline char grab_next_char(tokenizer_t *t) {
-    if (t->buf_idx >= MAX_BUFFER_LEN) {
+// TODO: Add unicode support in the future?
+static inline int grab_next_char(tokenizer_t *t) {
+    if (t->buf_idx >= t->buf_len) {
         grab_buffer(t);
-        t->buf_idx = 0;
+        if (t->buf_len == 0) {
+            return EOF;
+        }
     }
     char cur_char = t->buffer[t->buf_idx];
-    if (cur_char != EOF) {
-        t->buf_idx++;
-    }
+    t->buf_idx++;
     __DBG("cur_char: '%c' %hhu\n", cur_char, cur_char);
-    return cur_char;
+    return (int) cur_char;
 }
 
 // set token to t->token and reset t->token
@@ -86,12 +89,12 @@ static int grow_token(tokenizer_t *t, char last_char) {
 }
 
 int get_next_token(tokenizer_t *t, token_t *token) {
-    if (t->last_char == EOF) {
-        return EOF;
-    }
     int go_on = 1;
     while (go_on) {
-        char next_char = grab_next_char(t);
+        int next_char = grab_next_char(t);
+        if (next_char == EOF) {
+            return EOF;
+        }
         if (t->is_comment) {
             __DBG("is_comment\n");
             t->last_char = next_char;
