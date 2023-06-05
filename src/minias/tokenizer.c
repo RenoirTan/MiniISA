@@ -54,9 +54,16 @@ static inline char grab_next_char(tokenizer_t *t) {
 }
 
 // set token to t->token and reset t->token
-static int return_token(tokenizer_t *t, char *token) {
-    strncpy(token, t->token, t->token_len);
-    token[t->token_len] = '\0';
+static int return_token(tokenizer_t *t, token_t *token) {
+    // transfer to *token
+    token->length = t->token_len;
+    strncpy(token->span, t->token, t->token_len);
+    token->span[token->length] = '\0';
+    token->token_type = t->detected_token_type;
+    token->line_no = t->line_no;
+    token->col_no = t->col_no;
+
+    // reset
     t->token_len = 0;
     t->detected_token_type = UNKNOWN_TOKEN;
     return 0;
@@ -72,7 +79,7 @@ static int grow_token(tokenizer_t *t, char last_char) {
     }
 }
 
-int get_next_token(tokenizer_t *t, char *token) {
+int get_next_token(tokenizer_t *t, token_t *token) {
     if (t->last_char == EOF) {
         return EOF;
     }

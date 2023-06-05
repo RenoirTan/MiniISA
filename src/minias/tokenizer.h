@@ -27,6 +27,6 @@ tokenizer_t *init_tokenizer(tokenizer_t *t);
 
 FILE *set_tokenizer_file(tokenizer_t *t, FILE *f);
 
-int get_next_token(tokenizer_t *t, char *token);
+int get_next_token(tokenizer_t *t, token_t *token);
 
 #endif

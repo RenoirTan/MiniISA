@@ -16,6 +16,7 @@ typedef enum token_type {
 
 typedef struct token {
     char span[MAX_TOKEN_LEN+1];
+    size_t length;
     token_type_t token_type;
     size_t line_no;
     size_t col_no;

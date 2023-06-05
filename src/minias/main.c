@@ -36,14 +36,14 @@ int main(int argc, char **argv) {
     tokenizer_t* tokenizer = init_tokenizer(NULL);
     FILE *asm_file = fopen(args->asm_fp, "r");
     set_tokenizer_file(tokenizer, asm_file);
-    char *token = malloc(MAX_TOKEN_LEN+1);
+    token_t token;
     int status = 0;
     while (status != EOF) {
-        status = get_next_token(tokenizer, token);
+        status = get_next_token(tokenizer, &token);
         if (status == 1) {
             return 1;
         } else {
-            printf("%s\n", token);
+            printf("%s\n", token.span);
         }
     }
     return 0;
