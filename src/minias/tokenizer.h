@@ -5,15 +5,10 @@
 #   include <stdint.h>
 #   include <stdio.h>
 
+#   include "token.h"
+
 #   define MAX_TOKEN_LEN 255
 #   define MAX_BUFFER_LEN 255
-
-typedef enum token_type {
-    UNKNOWN_TOKEN = 0,
-    IDENTIFIER_TOKEN = 1,
-    INT_TOKEN = 2,
-    FLOAT_TOKEN = 3
-} token_type_t;
 
 typedef struct tokenizer {
     FILE *infile; // input stream of characters
