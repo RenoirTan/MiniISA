@@ -158,6 +158,8 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         case FLOAT_TOKEN:
             if (isdigit(last_char)) {
                 _GROW_TOKEN_CHECKED(t, last_char);
+            } else if (last_char == '.') {
+                return TOKENIZER_TOO_MANY_DOTS;
             } else {
                 return TOKENIZER_BAD_CHAR_IN_NUM;
             }
