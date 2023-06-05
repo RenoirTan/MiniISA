@@ -82,6 +82,14 @@ static int grow_token(tokenizer_t *t, char last_char) {
     }
 }
 
+static inline int is_identifier_initial(int codepoint) {
+    return (isalpha(codepoint) || codepoint == '_');
+}
+
+static inline int is_identifier_medial(int codepoint) {
+    return (is_identifier_initial(codepoint) || isdigit(codepoint));
+}
+
 #define _GROW_TOKEN_CHECKED(t, next_char) { \
     if (grow_token(t, next_char)) { \
         return TOKENIZER_TOO_LONG; \
@@ -89,83 +97,75 @@ static int grow_token(tokenizer_t *t, char last_char) {
 }
 
 int get_next_token(tokenizer_t *t, token_t *token) {
-    int go_on = 1;
-    while (go_on) {
-        int next_char = grab_next_char(t);
-        if (next_char == EOF) {
+    while (1) {
+        int last_char = grab_next_char(t);
+        t->last_char = last_char;
+        if (last_char == EOF) {
             return EOF;
         }
         if (t->is_comment) {
             __DBG("get_next_token: is_comment\n");
-            t->last_char = next_char;
-            if (next_char == '\r' || next_char == '\n') {
+            if (last_char == '\r' || last_char == '\n') {
                 t->is_comment = 0;
             }
             continue;
         }
 
         // space or ;
-        if ((isspace(next_char) || next_char == ';') && t->token_len > 0) {
+        if ((isspace(last_char) || last_char == ';') && t->token_len > 0) {
             __DBG("get_next_token: is_space\n");
             return_token(t, token);
-            go_on = 0;
-        
-        // alphabetic
-        } else if (isalpha(next_char) || next_char == '_') {
-            __DBG("get_next_token: is_alpha\n");
-            if (t->detected_token_type == IDENTIFIER_TOKEN) {
-                _GROW_TOKEN_CHECKED(t, next_char);
-            } else if (t->detected_token_type == UNKNOWN_TOKEN) {
-                if (t->token_len > 0) {
-                    return TOKENIZER_UNKNOWN_TOKEN;
-                }
-                grow_token(t, next_char);
+            break;
+        // begin comment
+        } else if (last_char == '#') {
+            __DBG("get_next_token: is_pound\n");
+            return_token(t, token);
+            break;
+            t->is_comment = 1;
+        }
+
+        switch (t->detected_token_type) {
+        case UNKNOWN_TOKEN:
+            if (t->token_len > 0) {
+                return TOKENIZER_UNRECOGNIZED_SEQUENCE;
+            }
+            if (is_identifier_initial(last_char)) {
                 t->detected_token_type = IDENTIFIER_TOKEN;
+            } else if (isdigit(last_char)) {
+                t->detected_token_type = INT_TOKEN;
+            } else {
+                return TOKENIZER_INVALID_START_CHAR;
+            }
+            grow_token(t, last_char);
+            break;
+        case IDENTIFIER_TOKEN:
+            if (is_identifier_medial(last_char)) {
+                _GROW_TOKEN_CHECKED(t, last_char);
+            } else {
+                return TOKENIZER_BAD_CHAR_IN_IDENTIFIER;
+            }
+            break;
+        case INT_TOKEN:
+            if (isdigit(last_char)) {
+                _GROW_TOKEN_CHECKED(t, last_char);
+            } else if (last_char == '.') {
+                _GROW_TOKEN_CHECKED(t, last_char);
+                t->detected_token_type = FLOAT_TOKEN;
             } else {
                 return TOKENIZER_BAD_CHAR_IN_NUM;
             }
-
-        // numeric digits
-        } else if (isdigit(next_char)) {
-            __DBG("get_next_token: is_digit\n");
-            if (
-                t->detected_token_type == INT_TOKEN ||
-                t->detected_token_type == FLOAT_TOKEN ||
-                t->detected_token_type == IDENTIFIER_TOKEN
-            ) {
-                _GROW_TOKEN_CHECKED(t, next_char);
-            } else if (t->detected_token_type == UNKNOWN_TOKEN) {
-                if (t->token_len > 0) {
-                    return TOKENIZER_UNKNOWN_TOKEN;
-                }
-                grow_token(t, next_char);
-                t->detected_token_type = INT_TOKEN;
-            }
-
-        // begin comment
-        } else if (next_char == '#') {
-            __DBG("get_next_token: is_pound\n");
-            return_token(t, token);
-            go_on = 0;
-            t->is_comment = 1;
-
-        // floating point
-        } else if (next_char == '.') {
-            __DBG("get_next_token: is_dot\n");
-            if (t->detected_token_type == INT_TOKEN) {
-                t->detected_token_type = FLOAT_TOKEN;
+            break;
+        case FLOAT_TOKEN:
+            if (isdigit(last_char)) {
+                _GROW_TOKEN_CHECKED(t, last_char);
             } else {
-                return TOKENIZER_TOO_MANY_DOTS;
+                return TOKENIZER_BAD_CHAR_IN_NUM;
             }
-            _GROW_TOKEN_CHECKED(t, next_char);
-
-        // unrecognized        
-        } else {
-            __DBG("get_next_token: is_other\n");
-            return TOKENIZER_UNRECOGNIZED_CHAR;
+            break;
+        default:
+            __DBG("get_next_token: fuck -> %i\n", t->detected_token_type);
+            return 255;
         }
-
-        t->last_char = next_char;
     }
     return 0;
 }
