@@ -95,7 +95,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             continue;
         }
         if ((isspace(next_char) || next_char == ';') && t->token_len > 0) { // space or ;
-           __DBG("is_space\n");
+            __DBG("is_space\n");
             return_token(t, token);
             go_on = 0;
         } else if (isalpha(next_char) || next_char == '_') { // char is [A-Za-z_]
@@ -127,7 +127,9 @@ int get_next_token(tokenizer_t *t, token_t *token) {
                 if (t->token_len > 0) {
                     return TOKENIZER_UNKNOWN_TOKEN;
                 }
-                grow_token(t, next_char);
+                if (grow_token(t, next_char)) {
+                    return TOKENIZER_TOO_LONG;
+                }
                 t->detected_token_type = INT_TOKEN;
             }
         } else if (next_char == '#') { // char is #
@@ -141,6 +143,9 @@ int get_next_token(tokenizer_t *t, token_t *token) {
                 t->detected_token_type = FLOAT_TOKEN;
             } else {
                 return TOKENIZER_TOO_MANY_DOTS;
+            }
+            if (grow_token(t, next_char)) {
+                return TOKENIZER_TOO_LONG;
             }
         } else {
             __DBG("is_other\n");
