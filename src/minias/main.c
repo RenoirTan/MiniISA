@@ -40,10 +40,11 @@ int main(int argc, char **argv) {
     int status = 0;
     while (status != EOF) {
         status = get_next_token(tokenizer, &token);
-        if (status == 1) {
-            return 1;
+        printf("<%d>", status);
+        if (status > 0) {
+            return status;
         } else {
-            printf("%s\n", token.span);
+            printf(" %s\n", token.span);
         }
     }
     return 0;
