@@ -96,19 +96,23 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             return EOF;
         }
         if (t->is_comment) {
-            __DBG("is_comment\n");
+            __DBG("get_next_token: is_comment\n");
             t->last_char = next_char;
             if (next_char == '\r' || next_char == '\n') {
                 t->is_comment = 0;
             }
             continue;
         }
-        if ((isspace(next_char) || next_char == ';') && t->token_len > 0) { // space or ;
-            __DBG("is_space\n");
+
+        // space or ;
+        if ((isspace(next_char) || next_char == ';') && t->token_len > 0) {
+            __DBG("get_next_token: is_space\n");
             return_token(t, token);
             go_on = 0;
-        } else if (isalpha(next_char) || next_char == '_') { // char is [A-Za-z_]
-            __DBG("is_alpha\n");
+        
+        // alphabetic
+        } else if (isalpha(next_char) || next_char == '_') {
+            __DBG("get_next_token: is_alpha\n");
             if (t->detected_token_type == IDENTIFIER_TOKEN) {
                 _GROW_TOKEN_CHECKED(t, next_char);
             } else if (t->detected_token_type == UNKNOWN_TOKEN) {
@@ -120,8 +124,10 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             } else {
                 return TOKENIZER_BAD_CHAR_IN_NUM;
             }
-        } else if (isdigit(next_char)) { // char is [0-9]
-            __DBG("is_digit\n");
+
+        // numeric digits
+        } else if (isdigit(next_char)) {
+            __DBG("get_next_token: is_digit\n");
             if (
                 t->detected_token_type == INT_TOKEN ||
                 t->detected_token_type == FLOAT_TOKEN ||
@@ -135,23 +141,30 @@ int get_next_token(tokenizer_t *t, token_t *token) {
                 grow_token(t, next_char);
                 t->detected_token_type = INT_TOKEN;
             }
-        } else if (next_char == '#') { // char is #
-            __DBG("is_pound\n");
+
+        // begin comment
+        } else if (next_char == '#') {
+            __DBG("get_next_token: is_pound\n");
             return_token(t, token);
             go_on = 0;
             t->is_comment = 1;
-        } else if (next_char == '.') { // char is .
-            __DBG("is_do\n");
+
+        // floating point
+        } else if (next_char == '.') {
+            __DBG("get_next_token: is_dot\n");
             if (t->detected_token_type == INT_TOKEN) {
                 t->detected_token_type = FLOAT_TOKEN;
             } else {
                 return TOKENIZER_TOO_MANY_DOTS;
             }
             _GROW_TOKEN_CHECKED(t, next_char);
+
+        // unrecognized        
         } else {
-            __DBG("is_other\n");
+            __DBG("get_next_token: is_other\n");
             return TOKENIZER_UNRECOGNIZED_CHAR;
         }
+
         t->last_char = next_char;
     }
     return 0;
