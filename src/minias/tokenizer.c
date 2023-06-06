@@ -114,14 +114,16 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         // space or ;
         if ((isspace(last_char) || last_char == ';') && t->token_len > 0) {
             __DBG("get_next_token: is_space\n");
-            return_token(t, token);
-            break;
+            if (t->token_len > 0) {
+                return_token(t, token);
+                break;
+            }
         // begin comment
         } else if (last_char == '#') {
             __DBG("get_next_token: is_pound\n");
             return_token(t, token);
-            break;
             t->is_comment = 1;
+            break;
         }
 
         switch (t->detected_token_type) {

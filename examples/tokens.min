@@ -1,3 +1,3 @@
 set r0 150
-set r1 250.07
+set r1 250.07 # here's a comment describing some float
 xcg r0 r1
