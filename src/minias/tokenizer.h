@@ -10,6 +10,8 @@
 #   define MAX_TOKEN_LEN 255
 #   define MAX_BUFFER_LEN 255
 
+#   define NO_LAST_CHAR (-255)
+
 #   define TOKENIZER_TOO_LONG 1
 #   define TOKENIZER_UNKNOWN_TOKEN 2
 #   define TOKENIZER_BAD_CHAR_IN_NUM 3

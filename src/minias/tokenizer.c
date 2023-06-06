@@ -20,7 +20,7 @@ tokenizer_t *init_tokenizer(tokenizer_t *t) {
     memset(t->buffer, '\0', MAX_BUFFER_LEN+1);
     t->buf_len = 0;
     t->buf_idx = MAX_BUFFER_LEN; // must trigger new buffer
-    t->last_char = 0;
+    t->last_char = NO_LAST_CHAR;
     t->detected_token_type = UNKNOWN_TOKEN;
     t->is_comment = 0;
 
@@ -98,8 +98,13 @@ static inline int is_identifier_medial(int codepoint) {
 
 int get_next_token(tokenizer_t *t, token_t *token) {
     while (1) {
-        int last_char = grab_next_char(t);
-        t->last_char = last_char;
+        __DBG("get_next_token: t->last_char = %d\n", t->last_char);
+        if (t->last_char == NO_LAST_CHAR) {
+            t->last_char = grab_next_char(t);
+        }
+        int last_char = t->last_char;
+        t->last_char = NO_LAST_CHAR;
+
         if (last_char == EOF) {
             return EOF;
         }
@@ -121,13 +126,18 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         // begin comment
         } else if (last_char == '#') {
             __DBG("get_next_token: is_pound\n");
-            return_token(t, token);
             t->is_comment = 1;
-            break;
+            if (t->token_len > 0) {
+                return_token(t, token);
+                break;
+            } else {
+                continue;
+            }
         }
 
         switch (t->detected_token_type) {
         case UNKNOWN_TOKEN:
+            __DBG("get_next_token: UNKNOWN_TOKEN\n");
             if (t->token_len > 0) {
                 return TOKENIZER_UNRECOGNIZED_SEQUENCE;
             }
@@ -141,6 +151,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             grow_token(t, last_char);
             break;
         case IDENTIFIER_TOKEN:
+            __DBG("get_next_token: IDENTIFIER_TOKEN\n");
             if (is_identifier_medial(last_char)) {
                 _GROW_TOKEN_CHECKED(t, last_char);
             } else {
@@ -148,6 +159,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             }
             break;
         case INT_TOKEN:
+            __DBG("get_next_token: INT_TOKEN\n");
             if (isdigit(last_char)) {
                 _GROW_TOKEN_CHECKED(t, last_char);
             } else if (last_char == '.') {
@@ -158,6 +170,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             }
             break;
         case FLOAT_TOKEN:
+            __DBG("get_next_token: FLOAT_TOKEN\n");
             if (isdigit(last_char)) {
                 _GROW_TOKEN_CHECKED(t, last_char);
             } else if (last_char == '.') {
