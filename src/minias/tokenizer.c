@@ -121,7 +121,12 @@ int get_next_token(tokenizer_t *t, token_t *token) {
 
         // return EOF
         if (last_char == EOF) {
-            return EOF;
+            if (t->token_len > 0) {
+                return_token(t, token);
+                break;
+            } else {
+                return EOF;
+            }
         }
         // skip character if comment
         // if newline, set t->is_comment to false
