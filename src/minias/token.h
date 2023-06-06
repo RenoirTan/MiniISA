@@ -11,7 +11,8 @@ typedef enum token_type {
     UNKNOWN_TOKEN = 0,
     IDENTIFIER_TOKEN = 1,
     INT_TOKEN = 2,
-    FLOAT_TOKEN = 3
+    FLOAT_TOKEN = 3,
+    COMMA_TOKEN = 4
 } token_type_t;
 
 typedef struct token {

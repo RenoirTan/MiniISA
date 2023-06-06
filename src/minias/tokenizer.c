@@ -104,6 +104,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         }
         int last_char = t->last_char;
         t->last_char = NO_LAST_CHAR;
+        __DBG("get_next_token: last_char = %d\n", last_char);
 
         if (last_char == EOF) {
             return EOF;
@@ -117,11 +118,13 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         }
 
         // space or ;
-        if ((isspace(last_char) || last_char == ';') && t->token_len > 0) {
+        if ((isspace(last_char) || last_char == ';')) {
             __DBG("get_next_token: is_space\n");
             if (t->token_len > 0) {
                 return_token(t, token);
                 break;
+            } else {
+                continue;
             }
         // begin comment
         } else if (last_char == '#') {
@@ -133,6 +136,17 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             } else {
                 continue;
             }
+        } else if (last_char == ',') {
+            __DBG("get_next_comma: is_comma\n");
+            if (t->token_len > 0) {
+                // store in t->last_char so we can return COMMA_TOKEN later
+                t->last_char = last_char;
+            } else {
+                grow_token(t, ',');
+                t->detected_token_type = COMMA_TOKEN;
+            }
+            return_token(t, token);
+            break;
         }
 
         switch (t->detected_token_type) {
