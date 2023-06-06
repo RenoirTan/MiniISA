@@ -20,6 +20,7 @@
 #   define TOKENIZER_UNRECOGNIZED_CHAR 6
 #   define TOKENIZER_UNRECOGNIZED_SEQUENCE 7
 #   define TOKENIZER_INVALID_START_CHAR 8
+#   define TOKENIZER_BAD_NEWLINE_SEQUENCE 9
 
 typedef struct tokenizer {
     FILE *infile; // input stream of characters

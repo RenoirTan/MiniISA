@@ -106,7 +106,8 @@ static inline int is_identifier_medial(int codepoint) {
 }
 
 int get_next_token(tokenizer_t *t, token_t *token) {
-    while (1) {
+    int go_on = 1;
+    while (go_on) {
         __DBG("get_next_token: t->last_char = %d\n", t->last_char);
         if (t->last_char == NO_LAST_CHAR) {
             t->last_char = grab_next_char(t);
@@ -126,8 +127,15 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             continue;
         }
 
+        if (last_char == '\r' || last_char == '\n') {
+            __DBG("get_next_token: is_crlf\n");
+            if (t->token_len > 0 && t->detected_token_type != NEWLINE_TOKEN) {
+                t->last_char = last_char;
+                return_token(t, token);
+                break;
+            }
         // space
-        if (isspace(last_char)) {
+        } else if (isspace(last_char)) {
             __DBG("get_next_token: is_space\n");
             _RET_TOKEN_IF_NOT_EMPTY_ELSE_CONTINUE(t, token);
         // begin comment
@@ -158,6 +166,8 @@ int get_next_token(tokenizer_t *t, token_t *token) {
                 t->detected_token_type = IDENTIFIER_TOKEN;
             } else if (isdigit(last_char)) {
                 t->detected_token_type = INT_TOKEN;
+            } else if (last_char == '\r' || last_char == '\n') {
+                t->detected_token_type = NEWLINE_TOKEN;
             } else {
                 return TOKENIZER_INVALID_START_CHAR;
             }
@@ -190,6 +200,19 @@ int get_next_token(tokenizer_t *t, token_t *token) {
                 return TOKENIZER_TOO_MANY_DOTS;
             } else {
                 return TOKENIZER_BAD_CHAR_IN_NUM;
+            }
+            break;
+        case NEWLINE_TOKEN:
+            __DBG("get_next_token: NEWLINE_TOKEN\n");
+            if (t->token_len > 1) {
+                return TOKENIZER_BAD_NEWLINE_SEQUENCE;
+            }
+            if (last_char == '\n' && t->token[0] == '\r') {
+                _GROW_TOKEN_CHECKED(t, '\n');
+            } else {
+                t->last_char = last_char;
+                return_token(t, token);
+                go_on = 0;
             }
             break;
         default:
