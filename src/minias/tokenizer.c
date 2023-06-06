@@ -118,7 +118,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         }
 
         // space or ;
-        if ((isspace(last_char) || last_char == ';')) {
+        if (isspace(last_char) || last_char == ';') {
             __DBG("get_next_token: is_space\n");
             if (t->token_len > 0) {
                 return_token(t, token);
