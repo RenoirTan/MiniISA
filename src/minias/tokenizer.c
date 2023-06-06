@@ -129,6 +129,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             __DBG("get_next_token: is_comment\n");
             if (last_char == '\r' || last_char == '\n') {
                 t->is_comment = 0;
+                t->last_char = last_char;
             }
             continue;
         }
