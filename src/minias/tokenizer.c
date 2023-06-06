@@ -108,6 +108,9 @@ static inline int is_identifier_medial(int codepoint) {
 int get_next_token(tokenizer_t *t, token_t *token) {
     int go_on = 1;
     while (go_on) {
+        // get the latest character
+        // if t->last_char is not NO_LAST_CHAR, then use the character in
+        // t->last_char first (because it hasn't been parsed yet)
         __DBG("get_next_token: t->last_char = %d\n", t->last_char);
         if (t->last_char == NO_LAST_CHAR) {
             t->last_char = grab_next_char(t);
@@ -116,9 +119,12 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         t->last_char = NO_LAST_CHAR;
         __DBG("get_next_token: last_char = %d\n", last_char);
 
+        // return EOF
         if (last_char == EOF) {
             return EOF;
         }
+        // skip character if comment
+        // if newline, set t->is_comment to false
         if (t->is_comment) {
             __DBG("get_next_token: is_comment\n");
             if (last_char == '\r' || last_char == '\n') {
@@ -127,8 +133,10 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             continue;
         }
 
+        // newline
         if (last_char == '\r' || last_char == '\n') {
             __DBG("get_next_token: is_crlf\n");
+            // terminate current token if not newline
             if (t->token_len > 0 && t->detected_token_type != NEWLINE_TOKEN) {
                 t->last_char = last_char;
                 return_token(t, token);
@@ -143,11 +151,14 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             __DBG("get_next_token: is_semicolon\n");
             t->is_comment = 1;
             _RET_TOKEN_IF_NOT_EMPTY_ELSE_CONTINUE(t, token);
+        // comma separator
         } else if (last_char == ',') {
             __DBG("get_next_comma: is_comma\n");
+            // terminate current token
             if (t->token_len > 0) {
                 // store in t->last_char so we can return COMMA_TOKEN later
                 t->last_char = last_char;
+            // create COMMA_TOKEN
             } else {
                 grow_token(t, ',');
                 t->detected_token_type = COMMA_TOKEN;
@@ -157,6 +168,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         }
 
         switch (t->detected_token_type) {
+        // cell specialization
         case UNKNOWN_TOKEN:
             __DBG("get_next_token: UNKNOWN_TOKEN\n");
             if (t->token_len > 0) {
