@@ -1,0 +1,41 @@
+sum:
+    pshuq rbp
+    movq rbp, rsp
+
+    pshuq r1 ; int64_t i = 0;
+    pshuq r2 ; int64_t total = 0;
+    pshuq r3 ; args
+    pshuq r4 ; temp1
+    pshuq r5 ; temp2
+    setuq r1, 0
+    setiq r2, 0
+    setuq r3, rbp
+    setuq r5, 8
+
+__sum_loop:
+
+    ; for (r1 = 0; r1 < r0; r1++)
+    cmpuq r1, r0
+    setuq r4, __sum_end
+    jge r4
+
+    adduq r3, r5 ; r3 += 8
+    ldrq r4, r3 ; r4 = *r3
+    addiq r2, r4 ; r2 += r4
+
+    ; r1++
+    setuq r4, 1
+    adduq r1, r4
+
+    setuq r4, __sum_loop
+    jmp r4
+
+__sum_end:
+    moviq rs0, r2
+    popuq r5
+    popuq r4
+    popuq r3
+    popuq r2
+    popuq r1
+    movuq rsp, rbp
+    popuq rbp

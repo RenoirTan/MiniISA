@@ -159,7 +159,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             _RET_TOKEN_IF_NOT_EMPTY_ELSE_CONTINUE(t, token);
         // comma separator
         } else if (last_char == ',') {
-            __DBG("get_next_comma: is_comma\n");
+            __DBG("get_next_token: is_comma\n");
             // terminate current token
             if (t->token_len > 0) {
                 // store in t->last_char so we can return COMMA_TOKEN later
@@ -168,6 +168,19 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             } else {
                 grow_token(t, ',');
                 t->detected_token_type = COMMA_TOKEN;
+            }
+            return_token(t, token);
+            break;
+        } else if (last_char == ':') {
+            __DBG("get_next_token: is_colon\n");
+            // terminate current token
+            if (t->token_len > 0) {
+                // store in t->last_char so we can return COMMA_TOKEN later
+                t->last_char = last_char;
+            // create COMMA_TOKEN
+            } else {
+                grow_token(t, ':');
+                t->detected_token_type = COLON_TOKEN;
             }
             return_token(t, token);
             break;

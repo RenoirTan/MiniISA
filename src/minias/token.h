@@ -13,7 +13,8 @@ typedef enum token_type {
     INT_TOKEN = 2,
     FLOAT_TOKEN = 3,
     COMMA_TOKEN = 4,
-    NEWLINE_TOKEN = 5
+    NEWLINE_TOKEN = 5,
+    COLON_TOKEN = 6
 } token_type_t;
 
 typedef struct token {
