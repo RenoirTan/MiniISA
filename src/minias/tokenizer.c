@@ -96,6 +96,15 @@ static inline int is_identifier_medial(int codepoint) {
     } \
 }
 
+#define _RET_TOKEN_IF_NOT_EMPTY_ELSE_CONTINUE(t, token) { \
+    if (t->token_len > 0) { \
+        return_token(t, token); \
+        break; \
+    } else { \
+        continue; \
+    } \
+}
+
 int get_next_token(tokenizer_t *t, token_t *token) {
     while (1) {
         __DBG("get_next_token: t->last_char = %d\n", t->last_char);
@@ -120,22 +129,12 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         // space
         if (isspace(last_char)) {
             __DBG("get_next_token: is_space\n");
-            if (t->token_len > 0) {
-                return_token(t, token);
-                break;
-            } else {
-                continue;
-            }
+            _RET_TOKEN_IF_NOT_EMPTY_ELSE_CONTINUE(t, token);
         // begin comment
         } else if (last_char == ';') {
             __DBG("get_next_token: is_semicolon\n");
             t->is_comment = 1;
-            if (t->token_len > 0) {
-                return_token(t, token);
-                break;
-            } else {
-                continue;
-            }
+            _RET_TOKEN_IF_NOT_EMPTY_ELSE_CONTINUE(t, token);
         } else if (last_char == ',') {
             __DBG("get_next_comma: is_comma\n");
             if (t->token_len > 0) {
@@ -201,4 +200,5 @@ int get_next_token(tokenizer_t *t, token_t *token) {
     return 0;
 }
 
+#undef _RET_TOKEN_IF_NOT_EMPTY_ELSE_CONTINUE
 #undef _GROW_TOKEN_CHECKED
