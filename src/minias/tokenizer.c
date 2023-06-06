@@ -117,8 +117,8 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             continue;
         }
 
-        // space or ;
-        if (isspace(last_char) || last_char == ';') {
+        // space
+        if (isspace(last_char)) {
             __DBG("get_next_token: is_space\n");
             if (t->token_len > 0) {
                 return_token(t, token);
@@ -127,8 +127,8 @@ int get_next_token(tokenizer_t *t, token_t *token) {
                 continue;
             }
         // begin comment
-        } else if (last_char == '#') {
-            __DBG("get_next_token: is_pound\n");
+        } else if (last_char == ';') {
+            __DBG("get_next_token: is_semicolon\n");
             t->is_comment = 1;
             if (t->token_len > 0) {
                 return_token(t, token);
