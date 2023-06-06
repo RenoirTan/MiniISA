@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
         if (status > 0) {
             return status;
         } else {
-            printf(" %s\n", token.span);
+            printf(" [%d] %s\n", token.token_type, token.span);
         }
     }
     return 0;
