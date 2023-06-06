@@ -229,9 +229,9 @@ int get_next_token(tokenizer_t *t, token_t *token) {
                 _GROW_TOKEN_CHECKED(t, '\n');
             } else {
                 t->last_char = last_char;
-                return_token(t, token);
-                go_on = 0;
             }
+            return_token(t, token);
+            go_on = 0;
             break;
         default:
             __DBG("get_next_token: fuck -> %i\n", t->detected_token_type);
