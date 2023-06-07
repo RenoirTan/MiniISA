@@ -1,41 +1,51 @@
 sum:
-    pshuq rbp
+    pshq rbp
     movq rbp, rsp
 
-    pshuq r1 ; int64_t i = 0;
-    pshuq r2 ; int64_t total = 0;
-    pshuq r3 ; args
-    pshuq r4 ; temp1
-    pshuq r5 ; temp2
-    setuq r1, 0
-    setiq r2, 0
-    setuq r3, rbp
-    setuq r5, 8
+    ; push arguments
+    pshq r5
+    pshq r4
+    pshq r3
+    pshq r2
+    pshq r1
+    pshq r0
+    setuq r1, 0 ; uint64_t i = 0
+    setiq r2, 0 ; int64_t total = 0
+    setuq r3, rbp ; int64_t *args = rbp
+    setuq r6, 48
+    subuq r3, r6 ; r3 -= 6 // 6*8=48 bytes
+    setuq r7, 8
 
 __sum_loop:
 
     ; for (r1 = 0; r1 < r0; r1++)
     cmpuq r1, r0
-    setuq r4, __sum_end
-    jge r4
+    setuq r6, __sum_end
+    jge r6
 
-    adduq r3, r5 ; r3 += 8
-    ldrq r4, r3 ; r4 = *r3
-    addiq r2, r4 ; r2 += r4
+    ; if (r1 == 6) r3 = rbp+16;
+    setuq r6, 6
+    cmpuq r1, r6
+    setuq r6, __sum_loop_no_set_r3
+    jne r6
+
+    movq r3, rbp
+    setuq r6, 8 ; another 8 will be added later to make 16
+    adduq r3, r6
+
+__sum_loop_no_set_r3:
+    adduq r3, r7 ; r3 += 8
+    ldrq r6, r3 ; r6 = *r3
+    addiq r2, r6 ; r2 += r6
 
     ; r1++
-    setuq r4, 1
-    adduq r1, r4
+    setuq r6, 1
+    adduq r1, r6
 
-    setuq r4, __sum_loop
-    jmp r4
+    setuq r6, __sum_loop
+    jmp r6
 
 __sum_end:
-    moviq rs0, r2
-    popuq r5
-    popuq r4
-    popuq r3
-    popuq r2
-    popuq r1
-    movuq rsp, rbp
-    popuq rbp
+    movq r0, r2 ; store return value in r0
+    movq rsp, rbp
+    popq rbp

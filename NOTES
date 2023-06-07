@@ -1,5 +1,12 @@
-r0 to r9, rs0, rs1, rbp, rsp, rip, flg
+r0 to r11, rbp, rsp, rip, flg
 0000 to 1111
+r0 to r5: caller saved, arguments and return
+r6 to r7: caller saved, temp
+r8 to r11: callee saved, temp
+rbp: base pointer
+rsp: stack pointer
+rip: instruction pointer
+flg: flag registers
 
 flg bits:
 0: zf
