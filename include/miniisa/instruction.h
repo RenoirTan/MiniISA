@@ -57,4 +57,16 @@ typedef struct miniisa_instruction {
 #   define MINIISA_INT 32
 #   define MINIISA_HLT 33
 
+int miniisa_instruction_to_bytes(
+    miniisa_instruction_t *instruction,
+    char *bytes,
+    const char *end
+);
+
+int miniisa_bytes_to_instruction(
+    char *bytes,
+    const char *end,
+    miniisa_instruction_t *instruction
+);
+
 #endif
