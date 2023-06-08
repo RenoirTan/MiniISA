@@ -7,7 +7,6 @@
 
 #   include "token.h"
 
-#   define MAX_TOKEN_LEN 255
 #   define MAX_BUFFER_LEN 255
 
 #   define NO_LAST_CHAR (-255)

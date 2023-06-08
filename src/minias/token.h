@@ -5,7 +5,6 @@
 #   include <stdint.h>
 
 #   define MAX_TOKEN_LEN 255
-#   define MAX_BUFFER_LEN 255
 
 typedef enum token_type {
     UNKNOWN_TOKEN = 0,
