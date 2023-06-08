@@ -1,0 +1,46 @@
+; Compute x^n mod m
+setiq r0, 151292348 ; base x
+setiq r1, 888888888 ; exp n
+setiq r2, 127382749 ; mod m
+
+; perform one mod first
+movq r6, r2
+diviq r0, r6 ; quotient in r0, remainder in r6
+movq r0, r6 ; x = x % m
+movq r3, r0 ; y = x
+
+; while loop of powers
+__loop:
+
+; if (n <= 1) break
+setbq r6, 1
+cmp r1, r6
+setuq r7, __loop_break
+jle r7
+
+; if (n % 2 != 0)
+setbq r6, 2
+diviq r1, r6
+setuq r7, __no_extra_mul
+jze r6, r7
+
+muliq r0, r3
+movq r6, r2
+diviq r0, r6
+movq r0, r6 ; x = (x*y) % m
+
+; if (n % 2 == 0)
+; x *= x; x %= m
+__no_extra_mul:
+muliq r0, r0
+movq r6, r2
+diviq r0, r6
+movq r0, r6 ; x = (x*x) % m
+
+setuq r7, __loop
+jmp r7
+
+__loop_break:
+; r0 contains answer
+
+; 102 bytes of machine code
