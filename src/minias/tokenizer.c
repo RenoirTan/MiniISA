@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <extra.h>
+#include <miniisa/extra.h>
 #include "tokenizer.h"
 
 tokenizer_t *init_tokenizer(tokenizer_t *t) {

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <config.h>
+#include <miniisa/config.h>
 #include "tokenizer.h"
 
 typedef struct args {
