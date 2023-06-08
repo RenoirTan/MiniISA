@@ -1,5 +1,5 @@
-#ifndef MINIAS_PARSER_H
-#   define MINIAS_PARSER_H
+#ifndef MINIISA_INSTRUCTION_H
+#   define MINIISA_INSTRUCTION_H
 
 #   include <stdint.h>
 
@@ -15,12 +15,12 @@ typedef struct cpu_register {
 
 typedef int32_t mnemonic_t;
 
-typedef struct command {
+typedef struct instruction {
     mnemonic_t mnemonic;
     cpu_register_t reg_a;
     cpu_register_t reg_b;
     uint8_t extra[8];
-} command_t;
+} instruction_t;
 
 #   define NOP_MNEMONIC 0
 #   define ADD_MNEMONIC 1
