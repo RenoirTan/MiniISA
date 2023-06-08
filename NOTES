@@ -15,7 +15,7 @@ flg bits:
 s: q 11, d 10, w 01, b 00
 t: i 01, u 00, f 10 or 11
 
-set <reg> <val> ; t,s 1000_0000 <reg><t,s> <4 bytes, little endian>
+set <reg> <val> ; t,s 1000_0000 <reg><t,s> <2 to 8 bytes, little endian>
 mov <reg> <reg> ; s 1000_01<s> <reg><reg>
 ldr <reg> <reg> ; s 1000_10<s> <reg><reg>
 str <reg> <reg> ; s 1000_11<s> <reg><reg>
@@ -59,6 +59,6 @@ jge <reg> ; 1001_0111 <reg>_0000
 
 int <valbu> ; 1010_1010 <valbu>
 hlt ; 1010_0101 1010_0101
-nop ; 0000_0000 0000_0000
+nop ; 0000_0000
 
 extended ; 1110_1110 <3 bytes>
