@@ -92,7 +92,7 @@ static inline int is_identifier_medial(int codepoint) {
 
 #define _GROW_TOKEN_CHECKED(t, next_char) { \
     if (grow_token(t, next_char)) { \
-        return TOKENIZER_TOO_LONG; \
+        return TOKENIZER_ERR_TOO_LONG; \
     } \
 }
 
@@ -191,7 +191,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
         case UNKNOWN_TOKEN:
             __DBG("get_next_token: UNKNOWN_TOKEN\n");
             if (t->token_len > 0) {
-                return TOKENIZER_UNRECOGNIZED_SEQUENCE;
+                return TOKENIZER_ERR_UNRECOGNIZED_SEQUENCE;
             }
             if (is_identifier_initial(last_char)) {
                 t->detected_token_type = IDENTIFIER_TOKEN;
@@ -200,7 +200,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             } else if (last_char == '\r' || last_char == '\n') {
                 t->detected_token_type = NEWLINE_TOKEN;
             } else {
-                return TOKENIZER_INVALID_START_CHAR;
+                return TOKENIZER_ERR_INVALID_START_CHAR;
             }
             grow_token(t, last_char);
             break;
@@ -209,7 +209,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             if (is_identifier_medial(last_char)) {
                 _GROW_TOKEN_CHECKED(t, last_char);
             } else {
-                return TOKENIZER_BAD_CHAR_IN_IDENTIFIER;
+                return TOKENIZER_ERR_BAD_CHAR_IN_IDENTIFIER;
             }
             break;
         case INT_TOKEN:
@@ -220,7 +220,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
                 _GROW_TOKEN_CHECKED(t, last_char);
                 t->detected_token_type = FLOAT_TOKEN;
             } else {
-                return TOKENIZER_BAD_CHAR_IN_NUM;
+                return TOKENIZER_ERR_BAD_CHAR_IN_NUM;
             }
             break;
         case FLOAT_TOKEN:
@@ -228,15 +228,15 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             if (isdigit(last_char)) {
                 _GROW_TOKEN_CHECKED(t, last_char);
             } else if (last_char == '.') {
-                return TOKENIZER_TOO_MANY_DOTS;
+                return TOKENIZER_ERR_TOO_MANY_DOTS;
             } else {
-                return TOKENIZER_BAD_CHAR_IN_NUM;
+                return TOKENIZER_ERR_BAD_CHAR_IN_NUM;
             }
             break;
         case NEWLINE_TOKEN:
             __DBG("get_next_token: NEWLINE_TOKEN\n");
             if (t->token_len > 1) {
-                return TOKENIZER_BAD_NEWLINE_SEQUENCE;
+                return TOKENIZER_ERR_BAD_NEWLINE_SEQUENCE;
             }
             if (last_char == '\n' && t->token[0] == '\r') {
                 _GROW_TOKEN_CHECKED(t, '\n');
