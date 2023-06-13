@@ -57,6 +57,8 @@ typedef struct miniisa_instruction {
     uint8_t extra[8];
 } miniisa_instruction_t;
 
+miniisa_instruction_t *miniisa_instruction_init(miniisa_instruction_t *i);
+
 int miniisa_instruction_to_bytes(
     miniisa_instruction_t *instruction,
     char *bytes,

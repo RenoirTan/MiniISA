@@ -12,4 +12,5 @@ project(
 my_inc = include_directories('include')
 
 subdir('include/miniisa')
+subdir('src/miniisa')
 subdir('src/minias')
