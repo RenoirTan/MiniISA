@@ -24,4 +24,6 @@ typedef struct token {
     size_t col_no;
 } token_t;
 
+token_t *init_token(token_t *token);
+
 #endif
