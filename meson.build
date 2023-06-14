@@ -8,6 +8,7 @@ project(
         # 'werror=true',
     ]
 )
+my_version = meson.project_version()
 
 my_inc = include_directories('include')
 

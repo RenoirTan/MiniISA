@@ -1,6 +1,6 @@
 conf_data = configuration_data()
 
-conf_data.set_quoted('MINIISA_VERSION', '0.1.0')
+conf_data.set_quoted('MINIISA_VERSION', my_version)
 buildtype = get_option('buildtype')
 
 is_debug = buildtype == 'debug'
