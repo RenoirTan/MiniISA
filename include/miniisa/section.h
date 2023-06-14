@@ -17,4 +17,6 @@ typedef struct miniisa_section {
     size_t symbols_count;
 } miniisa_section_t;
 
+miniisa_section_t *miniisa_section_init(miniisa_section_t *s);
+
 #endif

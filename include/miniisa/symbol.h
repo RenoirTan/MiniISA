@@ -11,4 +11,9 @@ typedef struct miniisa_symbol {
     size_t bytes_count;
 } miniisa_symbol_t;
 
+miniisa_symbol_t *miniisa_symbol_init(miniisa_symbol_t *s);
+
+// truncated to 255 bytes plus null byte
+size_t miniisa_symbol_set_name(miniisa_symbol_t *s, char *name);
+
 #endif

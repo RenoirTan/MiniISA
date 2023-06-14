@@ -9,4 +9,11 @@
 #       define __DBG(...) (0)
 #   endif
 
+#   define __MINIISA_INIT(ptr, type) { \
+    if (!ptr) { \
+        ptr = malloc(sizeof(type)); \
+        if (!ptr) return NULL; \
+    } \
+}
+
 #endif

@@ -21,4 +21,6 @@ typedef struct miniisa_bytecode {
     size_t sections_count;
 } miniisa_bytecode_t;
 
+miniisa_bytecode_t *miniisa_bytecode_init(miniisa_bytecode_t *b);
+
 #endif
