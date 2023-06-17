@@ -4,6 +4,7 @@
 #   include <stddef.h>
 #   include <stdint.h>
 #   include <miniisa/section.h>
+#   include <miniisa/symbol.h>
 
 #   define MINIISA_BYTECODE_LABEL_MAX_LEN (255)
 
@@ -19,6 +20,10 @@ typedef struct miniisa_bytecode {
     miniisa_section_t *sections;
     // number of sections
     size_t sections_count;
+    // symbols
+    miniisa_symbol_t *symbols;
+    // number of symbols
+    size_t symbols_count;
 } miniisa_bytecode_t;
 
 miniisa_bytecode_t *miniisa_bytecode_init(miniisa_bytecode_t *b);

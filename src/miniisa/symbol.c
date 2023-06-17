@@ -6,7 +6,8 @@
 miniisa_symbol_t *miniisa_symbol_init(miniisa_symbol_t *s) {
     __MINIISA_INIT(s, miniisa_symbol_t);
     memset(s->name, '\0', MINIISA_SYMBOL_NAME_MAX_LEN+1);
-    s->bytes_count = 0;
+    s->start = 0;
+    s->end = 0;
     return s;
 }
 

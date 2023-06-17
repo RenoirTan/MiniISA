@@ -10,5 +10,7 @@ miniisa_bytecode_t *miniisa_bytecode_init(miniisa_bytecode_t *b) {
     b->bytes_count = 0;
     b->sections = NULL;
     b->sections_count = 0;
+    b->symbols = NULL;
+    b->symbols_count = 0;
     return b;
 }

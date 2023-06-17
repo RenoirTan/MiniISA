@@ -2,6 +2,7 @@
 #   define MINIISA_SECTION_H
 
 #   include <stddef.h>
+#   include <stdint.h>
 #   include <miniisa/symbol.h>
 
 #   define MINIISA_SECTION_NAME_MAX_LEN (255)
@@ -11,10 +12,11 @@
 typedef struct miniisa_section {
     // name of the section
     char name[MINIISA_SECTION_NAME_MAX_LEN+1];
-    // list of symbols
-    miniisa_symbol_t *symbols;
-    // number of symbols in this section
-    size_t symbols_count;
+    // span range
+    size_t start;
+    size_t end;
+    // permissions
+    int32_t permissions;
 } miniisa_section_t;
 
 miniisa_section_t *miniisa_section_init(miniisa_section_t *s);
