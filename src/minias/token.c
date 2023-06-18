@@ -14,3 +14,8 @@ token_t *init_token(token_t *token) {
     token->col_no = 0;
     return token;
 }
+
+token_t *copy_token(token_t *dest, token_t *src) {
+    *dest = *src;
+    return dest;
+}

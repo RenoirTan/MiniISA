@@ -26,4 +26,6 @@ typedef struct token {
 
 token_t *init_token(token_t *token);
 
+token_t *copy_token(token_t *dest, token_t *src);
+
 #endif

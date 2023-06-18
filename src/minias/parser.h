@@ -2,6 +2,7 @@
 #   define MINIAS_PARSER_H
 
 #   include <stddef.h>
+#   include <miniisa/bytecode.h>
 #   include <miniisa/instruction.h>
 #   include "token.h"
 
@@ -10,11 +11,13 @@
 typedef enum parser_state {
     PARSER_INIT = 0,
     PARSER_DONE = 1,
-    PARSER_GETTING_NAME = 2,
+    PARSER_GETTING_INITIAL = 2,
     PARSER_DETECTING_TYPE = 3,
     PARSER_SETTING_DATA = 4,
     PARSER_FINDING_ARGUMENT = 5,
-    PARSER_WAITING_COMMA = 6
+    PARSER_AWAITING_COMMA = 6,
+    PARSER_NEEDING_SECTION_NAME = 7,
+    PARSER_EXPECTING_COLON = 8
 } parser_state_t;
 
 typedef struct parser {
@@ -26,5 +29,7 @@ typedef struct parser {
 } parser_t;
 
 parser_t *init_parser(parser_t *p);
+
+int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b);
 
 #endif
