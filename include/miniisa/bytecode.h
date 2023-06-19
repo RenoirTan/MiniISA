@@ -28,4 +28,12 @@ typedef struct miniisa_bytecode {
 
 miniisa_bytecode_t *miniisa_bytecode_init(miniisa_bytecode_t *b);
 
+int miniisa_bytecode_new_section(miniisa_bytecode_t *b, miniisa_section_t *s);
+
+int miniisa_bytecode_terminate_last_section(miniisa_bytecode_t *b);
+
+int miniisa_bytecode_new_symbol(miniisa_bytecode_t *b, miniisa_symbol_t *s);
+
+int miniisa_bytecode_terminate_last_symbol(miniisa_bytecode_t *b);
+
 #endif

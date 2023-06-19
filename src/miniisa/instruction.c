@@ -19,3 +19,19 @@ miniisa_instruction_t *miniisa_instruction_init(miniisa_instruction_t *i) {
     memset(i->extra, 0, 8);
     return i;
 }
+
+int miniisa_instruction_to_bytes(
+    miniisa_instruction_t *instruction,
+    char *bytes,
+    const char *end
+) {
+    return 0;
+}
+
+int miniisa_bytes_to_instruction(
+    char *bytes,
+    const char *end,
+    miniisa_instruction_t *instruction
+) {
+    return 0;
+}
