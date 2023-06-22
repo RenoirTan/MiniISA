@@ -105,6 +105,8 @@ typedef enum parser_state {
 
 typedef struct parser {
     token_t prev_token;
+    token_t curr_token;
+    int need_new_token;
     parser_state_t state;
     miniisa_instruction_t instruction;
     uint8_t data[PARSER_DATA_MAX_LEN];

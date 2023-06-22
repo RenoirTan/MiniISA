@@ -16,6 +16,8 @@ parser_t *init_parser(parser_t *p) {
         if (!p) return NULL;
     }
     init_token(&p->prev_token);
+    init_token(&p->curr_token);
+    p->need_new_token = 1;
     p->state = PARSER_INIT;
     miniisa_instruction_init(&p->instruction);
     memset(p->data, '\0', PARSER_DATA_MAX_LEN);
@@ -23,45 +25,69 @@ parser_t *init_parser(parser_t *p) {
     return p;
 }
 
-static void set_prev_token(parser_t *p, token_t *t) {
-    copy_token(&p->prev_token, t);
+static void push_token(parser_t *p, token_t *t) {
+    copy_token(&p->prev_token, &p->curr_token);
+    if (t) {
+        copy_token(&p->curr_token, t);
+    } else {
+        init_token(&p->curr_token);
+    }
 }
 
-static int getting_initial(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
+static int getting_initial(parser_t *p, miniisa_bytecode_t *b) {
     int status = 0;
+    token_t *t = &p->curr_token;
     switch (t->token_type) {
     case IDENTIFIER_TOKEN:
         p->state = strcmp(t->span, "section") == 0
             ? PARSER_NEEDING_SECTION_NAME
             : PARSER_DETECTING_TYPE;
+        p->need_new_token = 1;
         break;
     default:
         __DBG("getting_identifier: not identifier token: %s\n", t->span);
+        p->need_new_token = 0;
         status = 1;
     }
-    set_prev_token(p, t);
     return status;
 }
 
-static int detecting_type(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
+static int detecting_type(parser_t *p, miniisa_bytecode_t *b) {
     int status = 0;
-    switch (t->token_type) {
-    case COLON_TOKEN: { // symbol
+    if (p->curr_token.token_type == COLON_TOKEN) {
         miniisa_bytecode_terminate_last_symbol(b);
         miniisa_symbol_t s;
         miniisa_symbol_init(&s);
         miniisa_symbol_set_name(&s, p->prev_token.span);
         miniisa_bytecode_new_symbol(b, &s);
-        break;
-    }
-    default:
-        __DBG("detecting_type: unrecognized token: %s\n", t->span);
+        p->need_new_token = 1;
+        p->state = PARSER_INIT;
+    } else if (p->prev_token.token_type == IDENTIFIER_TOKEN) {
+        token_t *t = &p->prev_token;
+        if (strcmp(t->span, "data") == 0) {
+            p->state = PARSER_SETTING_DATA;
+        } else {
+            // TODO: create a new instruction
+            miniisa_instruction_init(&p->instruction);
+            // TODO: figure out which mnemonic this is
+            p->state = PARSER_FINDING_ARGUMENT;
+        }
+        p->need_new_token = 0;
+    } else {
+        __DBG("detecting_type: what is this??? %s\n", p->prev_token.span);
+        p->need_new_token = 0;
         status = 1;
     }
-    set_prev_token(p, t);
     return status;
 }
 
+#define _RUN_PARSER_FN_SHORT_CIRCUIT(f, s, p, b) { \
+    if (!(status = getting_initial(p, b))) { \
+        return status; \
+    } \
+}
+
+// TODO: FIND THE NEXT FUNCTION TO RUN IF p->need_new_token REMAINS FALSE
 int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
     int status = 0;
     if (t->token_type == NEWLINE_TOKEN) {
@@ -70,35 +96,15 @@ int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
     if (p->state == PARSER_INIT || p->state == PARSER_DONE) {
         p->state = PARSER_GETTING_INITIAL;
     }
+    if (p->need_new_token) {
+        push_token(p, t);
+    }
     switch (p->state) {
     case PARSER_GETTING_INITIAL:
-        if (!(status = getting_initial(p, t, b))) {
-            return status;
-        }
+        _RUN_PARSER_FN_SHORT_CIRCUIT(getting_initial, status, p, b);
         break;
     case PARSER_DETECTING_TYPE:
-        if (t->token_type == COLON_TOKEN) {
-            // TODO: new symbol
-            miniisa_symbol_t *s = miniisa_symbol_init(NULL);
-            if (!s) {
-                __DBG(
-                    "parse_one_token: PARSER_DETECTING_TYPE:"
-                    "could not allocate memory space for symbol\n"
-                );
-                return 2;
-            }
-            if (!miniisa_bytecode_terminate_last_symbol(b)) return 2;
-            s->start = b->bytes_count;
-            if (!miniisa_bytecode_new_symbol(b, s)) return 2;
-            p->state = PARSER_DONE;
-        } else if (t->token_type == IDENTIFIER_TOKEN) {
-            // TODO: instruction
-            p->state = PARSER_FINDING_ARGUMENT;
-        } else if (t->token_type == FLOAT_TOKEN || t->token_type == INT_TOKEN) {
-            // TODO: data
-            p->state = PARSER_SETTING_DATA;
-        }
-        set_prev_token(p, t);
+        _RUN_PARSER_FN_SHORT_CIRCUIT(detecting_type, status, p, b);
         break;
     case PARSER_SETTING_DATA:
         set_prev_token(p, t);
@@ -137,3 +143,5 @@ int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
     }
     return 0;
 }
+
+#undef _RUN_PARSER_FN_SHORT_CIRCUIT
