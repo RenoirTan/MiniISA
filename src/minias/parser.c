@@ -27,7 +27,24 @@ static void set_prev_token(parser_t *p, token_t *t) {
     copy_token(&p->prev_token, t);
 }
 
+static int getting_initial(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
+    int status = 0;
+    switch (t->token_type) {
+    case IDENTIFIER_TOKEN:
+        p->state = strcmp(t->span, "section") == 0
+            ? PARSER_NEEDING_SECTION_NAME
+            : PARSER_DETECTING_TYPE;
+        break;
+    default:
+        __DBG("getting_identifier: not identifier token: %s\n", t->span);
+        status = 1;
+    }
+    set_prev_token(p, t);
+    return status;
+}
+
 int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
+    int status = 0;
     if (t->token_type == NEWLINE_TOKEN) {
         return 0;
     }
@@ -36,19 +53,9 @@ int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
     }
     switch (p->state) {
     case PARSER_GETTING_INITIAL:
-        if (t->token_type != IDENTIFIER_TOKEN) {
-            __DBG(
-                "parse_one_token: PARSER_GETTING_INITIAL: not identifier token: %s\n",
-                t->span
-            );
-            return 2;
+        if (!(status = getting_initial(p, t, b))) {
+            return status;
         }
-        if (strcmp(t->span, "section") == 0) {
-            p->state = PARSER_NEEDING_SECTION_NAME;
-        } else {
-            p->state = PARSER_DETECTING_TYPE;
-        }
-        set_prev_token(p, t);
         break;
     case PARSER_DETECTING_TYPE:
         if (t->token_type == COLON_TOKEN) {
