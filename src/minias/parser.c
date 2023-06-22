@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <miniisa/bytecode.h>
 #include <miniisa/extra.h>
 #include <miniisa/instruction.h>
+#include <miniisa/permissions.h>
+#include <miniisa/section.h>
+#include <miniisa/symbol.h>
 #include "parser.h"
 #include "token.h"
 
@@ -49,6 +53,17 @@ int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
     case PARSER_DETECTING_TYPE:
         if (t->token_type == COLON_TOKEN) {
             // TODO: new symbol
+            miniisa_symbol_t *s = miniisa_symbol_init(NULL);
+            if (!s) {
+                __DBG(
+                    "parse_one_token: PARSER_DETECTING_TYPE:"
+                    "could not allocate memory space for symbol\n"
+                );
+                return 2;
+            }
+            if (!miniisa_bytecode_terminate_last_symbol(b)) return 2;
+            s->start = b->bytes_count;
+            if (!miniisa_bytecode_new_symbol(b, s)) return 2;
             p->state = PARSER_DONE;
         } else if (t->token_type == IDENTIFIER_TOKEN) {
             // TODO: instruction
@@ -65,7 +80,7 @@ int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
     case PARSER_FINDING_ARGUMENT:
         set_prev_token(p, t);
         break;
-    case PARSER_AWAITING_COMMA:
+    case PARSER_AWAITING_ARG_COMMA:
         set_prev_token(p, t);
         break;
     case PARSER_NEEDING_SECTION_NAME:
