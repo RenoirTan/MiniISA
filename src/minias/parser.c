@@ -43,6 +43,25 @@ static int getting_initial(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
     return status;
 }
 
+static int detecting_type(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
+    int status = 0;
+    switch (t->token_type) {
+    case COLON_TOKEN: { // symbol
+        miniisa_bytecode_terminate_last_symbol(b);
+        miniisa_symbol_t s;
+        miniisa_symbol_init(&s);
+        miniisa_symbol_set_name(&s, p->prev_token.span);
+        miniisa_bytecode_new_symbol(b, &s);
+        break;
+    }
+    default:
+        __DBG("detecting_type: unrecognized token: %s\n", t->span);
+        status = 1;
+    }
+    set_prev_token(p, t);
+    return status;
+}
+
 int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
     int status = 0;
     if (t->token_type == NEWLINE_TOKEN) {
