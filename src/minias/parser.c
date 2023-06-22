@@ -81,6 +81,18 @@ static int detecting_type(parser_t *p, miniisa_bytecode_t *b) {
     return status;
 }
 
+static int setting_data(parser_t *p, miniisa_bytecode_t *b) {
+    return 0;
+}
+
+static int finding_argument(parser_t *p, miniisa_bytecode_t *b) {
+    return 0;
+}
+
+static int awaiting_arg_comma(parser_t *p, miniisa_bytecode_t *b) {
+    return 0;
+}
+
 static int needing_section_name(parser_t *p, miniisa_bytecode_t *b) {
     int status = 0;
     token_t *t = &p->curr_token;
@@ -98,8 +110,20 @@ static int needing_section_name(parser_t *p, miniisa_bytecode_t *b) {
     return status;
 }
 
+static int expecting_colon(parser_t *p, miniisa_bytecode_t *b) {
+    return 0;
+}
+
+static int demanding_size_comma(parser_t *p, miniisa_bytecode_t *b) {
+    return 0;
+}
+
+static int requiring_size(parser_t *p, miniisa_bytecode_t *b) {
+    return 0;
+}
+
 #define _RUN_PARSER_FN_SHORT_CIRCUIT(f, s, p, b) { \
-    if (!(status = getting_initial(p, b))) { \
+    if (!(status = f(p, b))) { \
         return status; \
     } \
 }
@@ -107,9 +131,6 @@ static int needing_section_name(parser_t *p, miniisa_bytecode_t *b) {
 // TODO: FIND THE NEXT FUNCTION TO RUN IF p->need_new_token REMAINS FALSE
 int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
     int status = 0;
-    if (t->token_type == NEWLINE_TOKEN) {
-        return 0;
-    }
     if (p->state == PARSER_INIT || p->state == PARSER_DONE) {
         p->state = PARSER_GETTING_INITIAL;
     }
@@ -117,38 +138,39 @@ int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
         push_token(p, t);
         p->need_new_token = 0;
     }
-    switch (p->state) {
-    case PARSER_GETTING_INITIAL:
-        _RUN_PARSER_FN_SHORT_CIRCUIT(getting_initial, status, p, b);
-        break;
-    case PARSER_DETECTING_TYPE:
-        _RUN_PARSER_FN_SHORT_CIRCUIT(detecting_type, status, p, b);
-        break;
-    case PARSER_SETTING_DATA:
-        set_prev_token(p, t);
-        break;
-    case PARSER_FINDING_ARGUMENT:
-        set_prev_token(p, t);
-        break;
-    case PARSER_AWAITING_ARG_COMMA:
-        set_prev_token(p, t);
-        break;
-    case PARSER_NEEDING_SECTION_NAME:
-        _RUN_PARSER_FN_SHORT_CIRCUIT(needing_section_name, status, p, b);
-        break;
-    case PARSER_EXPECTING_COLON:
-        if (t->token_type != COLON_TOKEN) {
-            __DBG(
-                "parse_one_token: PARSER_EXPECTING_COLON: colon not found: %s\n",
-                t->span
-            );
-            return 2;
+    while (!(p->need_new_token)) {
+        switch (p->state) {
+            case PARSER_GETTING_INITIAL:
+                _RUN_PARSER_FN_SHORT_CIRCUIT(getting_initial, status, p, b);
+                break;
+            case PARSER_DETECTING_TYPE:
+                _RUN_PARSER_FN_SHORT_CIRCUIT(detecting_type, status, p, b);
+                break;
+            case PARSER_SETTING_DATA:
+                _RUN_PARSER_FN_SHORT_CIRCUIT(setting_data, status, p, b);
+                break;
+            case PARSER_FINDING_ARGUMENT:
+                _RUN_PARSER_FN_SHORT_CIRCUIT(finding_argument, status, p, b);
+                break;
+            case PARSER_AWAITING_ARG_COMMA:
+                _RUN_PARSER_FN_SHORT_CIRCUIT(awaiting_arg_comma, status, p, b);
+                break;
+            case PARSER_NEEDING_SECTION_NAME:
+                _RUN_PARSER_FN_SHORT_CIRCUIT(needing_section_name, status, p, b);
+                break;
+            case PARSER_EXPECTING_COLON:
+                _RUN_PARSER_FN_SHORT_CIRCUIT(expecting_colon, status, p, b);
+                break;
+            case PARSER_DEMANDING_SIZE_COMMA:
+                _RUN_PARSER_FN_SHORT_CIRCUIT(demanding_size_comma, status, p, b);
+                break;
+            case PARSER_REQUIRING_SIZE:
+                _RUN_PARSER_FN_SHORT_CIRCUIT(requiring_size, status, p, b);
+                break;
+            default:
+                __DBG("what the fuck is this parser state: %d\n", p->state);
+                return 1;
         }
-        set_prev_token(p, t);
-        break;
-    default:
-        __DBG("what the fuck is this parser state: %d\n", p->state);
-        return 1;
     }
     return 0;
 }
