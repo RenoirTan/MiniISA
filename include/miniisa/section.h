@@ -21,4 +21,6 @@ typedef struct miniisa_section {
 
 miniisa_section_t *miniisa_section_init(miniisa_section_t *s);
 
+size_t miniisa_section_set_name(miniisa_section_t *s, char *name);
+
 #endif

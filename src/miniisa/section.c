@@ -12,3 +12,9 @@ miniisa_section_t *miniisa_section_init(miniisa_section_t *s) {
     s->permissions = MINIISA_NO_PERMS;
     return s;
 }
+
+// TODO: return number of bytes copied, 256 if truncated
+size_t miniisa_section_set_name(miniisa_section_t *s, char *name) {
+    strncpy(s->name, name, MINIISA_SYMBOL_NAME_MAX_LEN);
+    return 0;
+}

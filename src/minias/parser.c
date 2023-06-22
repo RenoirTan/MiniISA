@@ -81,6 +81,23 @@ static int detecting_type(parser_t *p, miniisa_bytecode_t *b) {
     return status;
 }
 
+static int needing_section_name(parser_t *p, miniisa_bytecode_t *b) {
+    int status = 0;
+    token_t *t = &p->curr_token;
+    if (t->token_type == IDENTIFIER_TOKEN) {
+        miniisa_bytecode_terminate_last_section(b);
+        miniisa_section_t s;
+        miniisa_section_init(&s);
+        miniisa_section_set_name(&s, t->span);
+        miniisa_bytecode_new_section(b, &s);
+        p->need_new_token = 1;
+    } else {
+        __DBG("needing_section_name: not identifier token: %s\n", t->span);
+        p->need_new_token = 0;
+    }
+    return status;
+}
+
 #define _RUN_PARSER_FN_SHORT_CIRCUIT(f, s, p, b) { \
     if (!(status = getting_initial(p, b))) { \
         return status; \
@@ -98,6 +115,7 @@ int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
     }
     if (p->need_new_token) {
         push_token(p, t);
+        p->need_new_token = 0;
     }
     switch (p->state) {
     case PARSER_GETTING_INITIAL:
@@ -116,16 +134,7 @@ int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b) {
         set_prev_token(p, t);
         break;
     case PARSER_NEEDING_SECTION_NAME:
-        if (t->token_type != IDENTIFIER_TOKEN) {
-            __DBG(
-                "parse_one_token: PARSER_NEEDING_SECTION_NAME: "
-                "invalid token after 'section' keyword: %s\n",
-                t->span
-            );
-            return 2;
-        }
-        // TODO: create a new section
-        set_prev_token(p, t);
+        _RUN_PARSER_FN_SHORT_CIRCUIT(needing_section_name, status, p, b);
         break;
     case PARSER_EXPECTING_COLON:
         if (t->token_type != COLON_TOKEN) {
