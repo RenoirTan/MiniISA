@@ -67,9 +67,15 @@ static int detecting_type(parser_t *p, miniisa_bytecode_t *b) {
         if (strcmp(t->span, "data") == 0) {
             p->state = PARSER_SETTING_DATA;
         } else {
-            // TODO: create a new instruction
             miniisa_instruction_init(&p->instruction);
-            // TODO: figure out which mnemonic this is
+            status = miniisa_get_opcode(t->span, &p->instruction);
+            if (status < 0) {
+                __DBG("detecting_type: unknown mnemonic: %s\n", t->span);
+                return status;
+            } else if (status > 0) {
+                __DBG("detecting_type: an error occurred parsing instruction: %s\n", t->span);
+                return status;
+            }
             p->state = PARSER_FINDING_ARGUMENT;
         }
         p->need_new_token = 0;
