@@ -91,28 +91,103 @@ static int setting_data(parser_t *p, miniisa_bytecode_t *b) {
     return 0;
 }
 
+static int _set_register(char *s, miniisa_register_t *dest, miniisa_register_t *def) {
+    int status = 0;
+    miniisa_register_t reg = *def;
+    status = miniisa_get_register(s, &reg);
+    if (!status) return status;
+    dest->id = reg.id;
+    if (dest->type == 0xff || dest->type == reg.type) {
+        dest->type = reg.type;
+    } else {
+        __DBG(
+            "_set_register: conflicting register types: %hhu vs %hhu\n",
+            dest->type,
+            reg.type
+        );
+        return 1;
+    }
+    if (dest->size == 0xff || dest->size == reg.size) {
+        dest->size = reg.size;
+    } else {
+        __DBG(
+            "_set_register: conflicting register sizes: %hhu vs %hhu\n",
+            dest->size,
+            reg.size
+        );
+        return 1;
+    }
+    return status;
+}
+
 static int finding_argument(parser_t *p, miniisa_bytecode_t *b) {
     int status = 0;
     miniisa_ops_t opcode = p->instruction.opcode;
+    miniisa_register_t def; // default register
+    def.id = -1;
+    def.type = 0; // unsigned integer
+    def.size = 3; // qword (64-bit)
+
     switch (opcode) {
     // 0 arguments
-    case MINIISA_OP_NOP: case MINIISA_OP_HLT:
+    case MINIISA_OP_NOP: case MINIISA_OP_HLT: {
+        token_t *t = &p->curr_token;
+        // TODO: other terminating tokens like EOF
+        if (t->token_type == NEWLINE_TOKEN) {
+            p->need_new_token = 1;
+            // TODO: add instruction to bytecode
+            p->state = PARSER_INIT;
+        } else {
+            __DBG("finding_argument: invalid argument after nop/hlt: %s\n", t->span);
+            return 1;
+        }
         break;
+    }
     // 1 register argument
     case MINIISA_OP_NOT:
     case MINIISA_OP_PSH: case MINIISA_OP_POP:
     case MINIISA_OP_JEQ: case MINIISA_OP_JNE:
     case MINIISA_OP_JLT: case MINIISA_OP_JLE:
-    case MINIISA_OP_JGT: case MINIISA_OP_JGE:
+    case MINIISA_OP_JGT: case MINIISA_OP_JGE: {
+        token_t *t = &p->curr_token;
+        if (t->token_type == IDENTIFIER_TOKEN) {
+            status = _set_register(t->span, &p->instruction.reg_a, &def);
+            if (!status) return status;
+            p->need_new_token = 1;
+            p->state = PARSER_INIT; // TODO: EXPECT NEWLINE/TERMINATOR INSTEAD
+        } else {
+            __DBG("finding_argument: expected register, instead got this: %s\n", t->span);
+            p->need_new_token = 0;
+            return 1;
+        }
         break;
+    }
     // 2 register arguments
     case MINIISA_OP_ADD: case MINIISA_OP_SUB: case MINIISA_OP_MUL: case MINIISA_OP_DIV:
     case MINIISA_OP_AND: case MINIISA_OP_IOR: case MINIISA_OP_XOR:
     case MINIISA_OP_SHL: case MINIISA_OP_SHR: case MINIISA_OP_SAL: case MINIISA_OP_SAR:
     case MINIISA_OP_ROL: case MINIISA_OP_ROR:
     case MINIISA_OP_MOV: case MINIISA_OP_LDR: case MINIISA_OP_STR: case MINIISA_OP_XCG:
-    case MINIISA_OP_CMP: case MINIISA_OP_JZR: case MINIISA_OP_JNZ:
+    case MINIISA_OP_CMP: case MINIISA_OP_JZR: case MINIISA_OP_JNZ: {
+        size_t curr_reg = p->instruction.reg_a.id == -1 ? 0 : 1;
+        token_t *t = &p->curr_token;
+        if (t->token_type == IDENTIFIER_TOKEN) {
+            miniisa_register_t *dest = curr_reg ? &p->instruction.reg_a : &p->instruction.reg_b;
+            status = _set_register(t->span, dest, &def);
+            if (!status) return status;
+            p->need_new_token = 1;
+            if (curr_reg == 0) {
+                p->state = PARSER_AWAITING_ARG_COMMA;
+            } else {
+                p->state = PARSER_INIT; // TODO: EXPECT NEWLINE/TERMINATOR INSTEAD
+            }
+        } else {
+            __DBG("finding_argument: expected register, instead got this: %s\n", t->span);
+            p->need_new_token = 0;
+            return 1;
+        }
         break;
+    }
     // set mnemonic
     case MINIISA_OP_SET:
         break;

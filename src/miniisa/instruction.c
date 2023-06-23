@@ -1,13 +1,98 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <miniisa/extra.h>
 #include <miniisa/instruction.h>
 
-static void reset_register(miniisa_register_t *r) {
+void reset_register(miniisa_register_t *r) {
     r->id = -1;
-    r->type = 0;
-    r->size = 0;
+    r->type = 0xff;
+    r->size = 0xff;
+}
+
+miniisa_register_id_t miniisa_get_register_id(char *s) {
+    size_t s_len = strlen(s);
+    if (s_len < 2) {
+        return -1;
+    }
+    if (!strncmp(s, "rbp", 3)) {
+        return 0xc;
+    } else if (!strncmp(s, "rsp", 3)) {
+        return 0xd;
+    } else if (!strncmp(s, "rip", 3)) {
+        return 0xe;
+    } else if (!strncmp(s, "flg", 3)) {
+        return 0xf;
+    } else if (s[0] == 'r') {
+        if (isdigit(s[1]) && !isdigit(s[2])) {
+            return s[1] - '0'; // converts '0' to 0 and so on
+        // fails when something like r18 is encountered
+        } else if (s[1] == '1' && isdigit(s[2]) && (s[2] == '0' || s[2] == '1')) {
+            return (s[2] - '0') + 10;
+        } else {
+            return -2;
+        }
+    } else {
+        return -1;
+    }
+}
+
+int miniisa_get_register(char *s, miniisa_register_t *reg) {
+    size_t s_len = strlen(s);
+    miniisa_register_t r;
+    reset_register(&r);
+    r.type = 0xff;
+    r.size = 0xff;
+    r.id = miniisa_get_register_id(s);
+    if (r.id < 0) {
+        __DBG("miniisa_get_register: invalid register: %s\n", s);
+        return 1;
+    }
+    size_t index = r.id <= 9 ? 2 : 3; // r1, ..., r9 OR r10, ..., flg
+    if (s_len > index) {
+        switch (s[index]) {
+            case 'u': r.type = 0; break;
+            case 'i': r.type = 1; break;
+            case 'f': r.type = 2; break;
+            case 'b': r.size = 0; break;
+            case 'w': r.size = 1; break;
+            case 'd': r.size = 2; break;
+            case 'q': r.size = 3; break;
+            default:
+                __DBG("miniisa_get_register: invalid type/size: %c\n", s[index]);
+                return 1;
+        }
+    }
+    index++;
+    if (s_len > index) {
+        if (r.size != 0xff) {
+            __DBG("miniisa_get_register: cannot have any character after size: %s\n", s);
+            return 1;
+        }
+        switch (s[index]) {
+            case 'b': r.size = 0; break;
+            case 'w': r.size = 1; break;
+            case 'd': r.size = 2; break;
+            case 'q': r.size = 3; break;
+            default:
+                __DBG("miniisa_get_register: invalid size: %c\n", s[index]);
+                return 1;
+        }
+    }
+    index++;
+    if (s_len > index) {
+        __DBG("miniisa_get_register: register identifier too long!: %s\n", s);
+        return 1;
+    }
+    reg->id = r.id;
+    if (r.type != 0xff) {
+        reg->type = r.type;
+    }
+    if (r.size != 0xff) {
+        reg->size = r.size;
+    }
+    return 0;
 }
 
 miniisa_instruction_t *miniisa_instruction_init(miniisa_instruction_t *i) {

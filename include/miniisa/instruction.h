@@ -13,6 +13,12 @@ typedef struct miniisa_register {
     miniisa_register_size_t size;
 } miniisa_register_t;
 
+void reset_register(miniisa_register_t *r);
+
+miniisa_register_id_t miniisa_get_register_id(char *s);
+
+int miniisa_get_register(char *s, miniisa_register_t *reg);
+
 typedef enum miniisa_ops {
     MINIISA_OP_INVALID = -1,
     MINIISA_OP_NOP = 0,
