@@ -1,6 +1,8 @@
 #ifndef MINIAS_PREBYTECODE_H
 #   define MINIAS_PREBYTECODE_H
 
+#   include <stddef.h>
+#   include <stdint.h>
 #   include "token.h"
 
 typedef enum data_type {
@@ -105,5 +107,46 @@ typedef struct argument {
         value_arg_t val;
     } a;
 } argument_t;
+
+typedef enum stmt_kind {
+    INSTRUCTION_STMT = 0,
+    DATA_STMT = 1,
+    SYMBOL_STMT = 2,
+    SECTION_STMT = 3
+} stmt_kind_t;
+
+typedef struct instruction {
+    raw_mnemonic_t mnemonic;
+    argument_t arg_1;
+    argument_t arg_2;
+} instruction_t;
+
+typedef struct data_stmt {
+    uint8_t *data;
+    size_t length;
+} data_stmt_t;
+
+typedef struct symbol_stmt {
+    char name[MAX_TOKEN_LEN+1];
+} symbol_stmt_t;
+
+typedef struct section_stmt {
+    char name[MAX_TOKEN_LEN+1];
+} section_stmt_t;
+
+typedef struct statement {
+    stmt_kind_t kind;
+    union {
+        instruction_t instruction;
+        data_stmt_t data;
+        symbol_stmt_t symbol;
+        section_stmt_t section;
+    } s;
+} statement_t;
+
+typedef struct prebytecode {
+    statement_t *statements;
+    size_t stmts_count;
+} prebytecode_t;
 
 #endif
