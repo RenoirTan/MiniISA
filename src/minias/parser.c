@@ -95,7 +95,7 @@ static int _set_register(char *s, miniisa_register_t *dest, miniisa_register_t *
     int status = 0;
     miniisa_register_t reg = *def;
     status = miniisa_get_register(s, &reg);
-    if (!status) return status;
+    if (status) return status;
     dest->id = reg.id;
     if (dest->type == 0xff || dest->type == reg.type) {
         dest->type = reg.type;
@@ -152,7 +152,7 @@ static int finding_argument(parser_t *p, miniisa_bytecode_t *b) {
         token_t *t = &p->curr_token;
         if (t->token_type == IDENTIFIER_TOKEN) {
             status = _set_register(t->span, &p->instruction.reg_a, &def);
-            if (!status) return status;
+            if (status) return status;
             p->need_new_token = 1;
             p->state = PARSER_INIT; // TODO: EXPECT NEWLINE/TERMINATOR INSTEAD
         } else {
@@ -174,7 +174,7 @@ static int finding_argument(parser_t *p, miniisa_bytecode_t *b) {
         if (t->token_type == IDENTIFIER_TOKEN) {
             miniisa_register_t *dest = curr_reg ? &p->instruction.reg_a : &p->instruction.reg_b;
             status = _set_register(t->span, dest, &def);
-            if (!status) return status;
+            if (status) return status;
             p->need_new_token = 1;
             if (curr_reg == 0) {
                 p->state = PARSER_AWAITING_ARG_COMMA;
