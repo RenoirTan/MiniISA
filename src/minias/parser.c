@@ -92,7 +92,40 @@ static int setting_data(parser_t *p, miniisa_bytecode_t *b) {
 }
 
 static int finding_argument(parser_t *p, miniisa_bytecode_t *b) {
-    return 0;
+    int status = 0;
+    miniisa_ops_t opcode = p->instruction.opcode;
+    switch (opcode) {
+    // 0 arguments
+    case MINIISA_OP_NOP: case MINIISA_OP_HLT:
+        break;
+    // 1 register argument
+    case MINIISA_OP_NOT:
+    case MINIISA_OP_PSH: case MINIISA_OP_POP:
+    case MINIISA_OP_JEQ: case MINIISA_OP_JNE:
+    case MINIISA_OP_JLT: case MINIISA_OP_JLE:
+    case MINIISA_OP_JGT: case MINIISA_OP_JGE:
+        break;
+    // 2 register arguments
+    case MINIISA_OP_ADD: case MINIISA_OP_SUB: case MINIISA_OP_MUL: case MINIISA_OP_DIV:
+    case MINIISA_OP_AND: case MINIISA_OP_IOR: case MINIISA_OP_XOR:
+    case MINIISA_OP_SHL: case MINIISA_OP_SHR: case MINIISA_OP_SAL: case MINIISA_OP_SAR:
+    case MINIISA_OP_ROL: case MINIISA_OP_ROR:
+    case MINIISA_OP_MOV: case MINIISA_OP_LDR: case MINIISA_OP_STR: case MINIISA_OP_XCG:
+    case MINIISA_OP_CMP: case MINIISA_OP_JZR: case MINIISA_OP_JNZ:
+        break;
+    // set mnemonic
+    case MINIISA_OP_SET:
+        break;
+    // cvt mnemonic
+    case MINIISA_OP_CVT:
+        break;
+    // int mnemonic
+    case MINIISA_OP_INT:
+        break;
+    case MINIISA_OP_INVALID: default:
+        __DBG("finding_argument: invalid opcode %d\n", opcode);
+    }
+    return status;
 }
 
 static int awaiting_arg_comma(parser_t *p, miniisa_bytecode_t *b) {
