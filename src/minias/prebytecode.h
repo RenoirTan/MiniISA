@@ -89,15 +89,23 @@ typedef struct register_arg {
     data_size_t size;
 } register_arg_t;
 
+register_arg_t *init_register_arg(register_arg_t *r);
+
 typedef struct symbol_arg {
-    char symbol[MAX_TOKEN_LEN+1];
+    char name[MAX_TOKEN_LEN+1];
 } symbol_arg_t;
+
+symbol_arg_t *init_symbol_arg(symbol_arg_t *s);
+
+size_t set_symbol_name(symbol_arg_t *s, char *name);
 
 typedef struct value_arg {
     uint8_t value[8];
     data_type_t type;
     data_size_t size;
 } value_arg_t;
+
+value_arg_t *init_value_arg(value_arg_t *v);
 
 typedef struct argument {
     arg_kind_t kind;
@@ -107,6 +115,8 @@ typedef struct argument {
         value_arg_t val;
     } a;
 } argument_t;
+
+argument_t *init_argument(argument_t *a);
 
 typedef enum stmt_kind {
     INSTRUCTION_STMT = 0,
@@ -121,18 +131,28 @@ typedef struct instruction {
     argument_t arg_2;
 } instruction_t;
 
+instruction_t *init_instruction(instruction_t *i);
+
 typedef struct data_stmt {
     uint8_t *data;
     size_t length;
 } data_stmt_t;
 
+data_stmt_t *init_data_stmt(data_stmt_t *d);
+
+int set_data(data_stmt_t *d, uint8_t *value, size_t length);
+
 typedef struct symbol_stmt {
     char name[MAX_TOKEN_LEN+1];
 } symbol_stmt_t;
 
+symbol_stmt_t *init_symbol_stmt(symbol_stmt_t *s);
+
 typedef struct section_stmt {
     char name[MAX_TOKEN_LEN+1];
 } section_stmt_t;
+
+section_stmt_t *init_section_stmt(section_stmt_t *s);
 
 typedef struct statement {
     stmt_kind_t kind;
@@ -144,9 +164,18 @@ typedef struct statement {
     } s;
 } statement_t;
 
+statement_t *init_statement(statement_t *s);
+
 typedef struct prebytecode {
     statement_t *statements;
     size_t stmts_count;
+    size_t stmts_capacity;
 } prebytecode_t;
+
+prebytecode_t *init_prebytecode(prebytecode_t *p);
+
+int set_prebytecode_capacity(prebytecode_t *p, size_t new_cap);
+
+int push_prebytecode_stmt(prebytecode_t *p, statement_t *s);
 
 #endif
