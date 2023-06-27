@@ -158,16 +158,8 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
     // these mnemonics expect no arguments after it,
     // so it expects terminating tokens like newline or eof after the mnemonic
     case NOP_MNEMONIC: case HLT_MNEMONIC: {
-        token_t *t = &p->curr_token;
-        // TODO: other terminating tokens like EOF
-        if (t->token_type == NEWLINE_TOKEN) {
-            p->need_new_token = 1;
-            // TODO: add instruction to bytecode
-            p->state = PARSER_DONE;
-        } else {
-            __DBG("finding_argument: invalid argument after nop/hlt: %s\n", t->span);
-            return 1;
-        }
+        p->need_new_token = 0;
+        p->state = PARSER_ANTICIPATING_TERMINATING;
         break;
     }
     // 1 register argument
@@ -182,7 +174,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
             status = _set_register(t->span, &p->stmt.s.instruction.arg_1.a.reg, &def);
             if (status) return status;
             p->need_new_token = 1;
-            p->state = PARSER_DONE; // TODO: EXPECT NEWLINE/TERMINATOR INSTEAD
+            p->state = PARSER_ANTICIPATING_TERMINATING;
         } else {
             __DBG("finding_argument: expected register, instead got this: %s\n", t->span);
             p->need_new_token = 0;
@@ -212,7 +204,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
             if (curr_reg == 0) {
                 p->state = PARSER_AWAITING_ARG_COMMA; // need arg_2 now
             } else {
-                p->state = PARSER_DONE; // TODO: EXPECT NEWLINE/TERMINATOR INSTEAD
+                p->state = PARSER_ANTICIPATING_TERMINATING; // arg_2 done
             }
         } else {
             __DBG("finding_argument: expected register, instead got this: %s\n", t->span);
@@ -252,7 +244,7 @@ static int needing_section_name(parser_t *p, prebytecode_t *b) {
         // add statement to prebytecode_t *b
         push_prebytecode_stmt(b, &p->stmt);
         p->need_new_token = 1;
-        p->state = PARSER_DONE; // TODO: terminating
+        p->state = PARSER_ANTICIPATING_TERMINATING;
     } else {
         __DBG("needing_section_name: not identifier token: %s\n", t->span);
         p->need_new_token = 0;
@@ -270,6 +262,18 @@ static int demanding_size_comma(parser_t *p, prebytecode_t *b) {
 
 static int requiring_size(parser_t *p, prebytecode_t *b) {
     return 0;
+}
+
+static int anticipating_terminating(parser_t *p, prebytecode_t *b) {
+    int status = 0;
+    token_t *t = &p->curr_token;
+    if (t->token_type == NEWLINE_TOKEN) { // include EOFs as well
+        p->need_new_token = 1;
+        p->state = PARSER_DONE;
+    } else {
+        __DBG("anticipating_terminating: got '%s'\n", t->span);
+    }
+    return status;
 }
 
 #define _RUN_PARSER_FN_SHORT_CIRCUIT(f, s, p, b) { \
@@ -319,6 +323,9 @@ int parse_one_token(parser_t *p, token_t *t, prebytecode_t *b) {
                 break;
             case PARSER_REQUIRING_SIZE:
                 _RUN_PARSER_FN_SHORT_CIRCUIT(requiring_size, status, p, b);
+                break;
+            case PARSER_ANTICIPATING_TERMINATING:
+                _RUN_PARSER_FN_SHORT_CIRCUIT(anticipating_terminating, status, p, b);
                 break;
             default:
                 __DBG("what the fuck is this parser state: %d\n", p->state);

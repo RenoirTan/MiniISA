@@ -99,7 +99,14 @@ typedef enum parser_state {
      * --------------
      * go back to PARSER_DONE
      */
-    PARSER_REQUIRING_SIZE = 10
+    PARSER_REQUIRING_SIZE = 10,
+
+    /**
+     * wait for newline/eof after data
+     * -------------------------------
+     * go to PARSER_DONE
+     */
+    PARSER_ANTICIPATING_TERMINATING = 11,
 } parser_state_t;
 
 typedef struct parser {
