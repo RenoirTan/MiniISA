@@ -10,7 +10,7 @@ conf_data.set('MINIISA_DEBUG', is_debug)
 configure_file(input: 'config.h.in', output: 'config.h', configuration: conf_data)
 
 # Install headers
-my_headers = ['bytecode.h', 'extra.h', 'instruction.h', 'section.h', 'symbol.h']
+my_headers = ['bytecode.h', 'extra.h', 'instruction.h', 'permissions.h', 'section.h', 'strnlen.h', 'symbol.h']
 install_headers(my_headers, preserve_path: true, subdir: 'miniisa')
 build_dir = meson.current_build_dir() + '/'
 _built_headers = ['config.h']
