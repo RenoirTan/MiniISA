@@ -13,7 +13,8 @@ typedef enum token_type {
     FLOAT_TOKEN = 3,
     COMMA_TOKEN = 4,
     NEWLINE_TOKEN = 5,
-    COLON_TOKEN = 6
+    COLON_TOKEN = 6,
+    EOF_TOKEN = 7
 } token_type_t;
 
 typedef struct token {
@@ -27,5 +28,7 @@ typedef struct token {
 token_t *init_token(token_t *token);
 
 token_t *copy_token(token_t *dest, token_t *src);
+
+int make_eof_token(token_t *token);
 
 #endif

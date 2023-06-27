@@ -267,11 +267,15 @@ static int requiring_size(parser_t *p, prebytecode_t *b) {
 static int anticipating_terminating(parser_t *p, prebytecode_t *b) {
     int status = 0;
     token_t *t = &p->curr_token;
-    if (t->token_type == NEWLINE_TOKEN) { // include EOFs as well
+    switch (t->token_type) {
+    case NEWLINE_TOKEN: case EOF_TOKEN: { // include EOFs as well
         p->need_new_token = 1;
         p->state = PARSER_DONE;
-    } else {
+        break;
+    }
+    default:
         __DBG("anticipating_terminating: got '%s'\n", t->span);
+        return 1;
     }
     return status;
 }

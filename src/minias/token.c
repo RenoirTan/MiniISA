@@ -19,3 +19,10 @@ token_t *copy_token(token_t *dest, token_t *src) {
     *dest = *src;
     return dest;
 }
+
+int make_eof_token(token_t *token) {
+    memset(&token->span, '\0', MAX_TOKEN_LEN+1);
+    token->length = 0;
+    token->token_type = UNKNOWN_TOKEN;
+    return 0;
+}
