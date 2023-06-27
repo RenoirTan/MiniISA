@@ -2,8 +2,7 @@
 #   define MINIAS_PARSER_H
 
 #   include <stddef.h>
-#   include <miniisa/bytecode.h>
-#   include <miniisa/instruction.h>
+#   include "prebytecode.h"
 #   include "token.h"
 
 #   define PARSER_DATA_MAX_LEN (1024)
@@ -108,13 +107,11 @@ typedef struct parser {
     token_t curr_token;
     int need_new_token;
     parser_state_t state;
-    miniisa_instruction_t instruction;
-    uint8_t data[PARSER_DATA_MAX_LEN];
-    size_t data_len;
+    statement_t stmt;
 } parser_t;
 
 parser_t *init_parser(parser_t *p);
 
-int parse_one_token(parser_t *p, token_t *t, miniisa_bytecode_t *b);
+int parse_one_token(parser_t *p, token_t *t, prebytecode_t *b);
 
 #endif

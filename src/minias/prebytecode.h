@@ -74,7 +74,8 @@ typedef enum register_id {
     RBP_REG = 12,
     RSP_REG = 13,
     RIP_REG = 14,
-    FLG_REG = 15
+    FLG_REG = 15,
+    UNKNOWN_REG = 0xFF
 } register_id_t;
 
 typedef enum arg_kind {
@@ -90,6 +91,10 @@ typedef struct register_arg {
 } register_arg_t;
 
 register_arg_t *init_register_arg(register_arg_t *r);
+
+register_id_t parse_register_id(char *s);
+
+int parse_register(char *s, register_arg_t *reg);
 
 typedef struct symbol_arg {
     char name[MAX_TOKEN_LEN+1];
@@ -132,6 +137,8 @@ typedef struct instruction {
 } instruction_t;
 
 instruction_t *init_instruction(instruction_t *i);
+
+int parse_instruction_mnemonic(char *s, instruction_t *i);
 
 typedef struct data_stmt {
     uint8_t *data;

@@ -4,9 +4,7 @@
 #   include <stddef.h>
 #   include <string.h>
 
-#   ifdef strnlen
-#       define miniisa_strnlen strnlen
-#   else
+#   ifndef strnlen
 
 static size_t strnlen(char *s, size_t n) {
     size_t i;
