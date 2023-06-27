@@ -31,9 +31,13 @@ static void push_token(parser_t *p, token_t *t) {
 static int getting_initial(parser_t *p, prebytecode_t *b) {
     int status = 0;
     token_t *t = &p->curr_token;
+
+    // reset statement
     init_statement(&p->stmt);
+
     switch (t->token_type) {
     case IDENTIFIER_TOKEN:
+        // determine if this line is a section derivative or something else
         p->state = strcmp(t->span, "section") == 0
             ? PARSER_NEEDING_SECTION_NAME
             : PARSER_DETECTING_TYPE;
@@ -49,21 +53,33 @@ static int getting_initial(parser_t *p, prebytecode_t *b) {
 
 static int detecting_type(parser_t *p, prebytecode_t *b) {
     int status = 0;
+
+    // if there is a colon ':' after the previous token, then this is a symbol
     if (p->curr_token.token_type == COLON_TOKEN) {
+        // set statement to symbol
         p->stmt.kind = SYMBOL_STMT;
         init_symbol_stmt(&p->stmt.s.symbol);
+
+        // set name of symbol
         strncpy(p->stmt.s.symbol.name, p->prev_token.span, MAX_TOKEN_LEN+1);
-        p->stmt.s.symbol.name[MAX_TOKEN_LEN] = '\0';
+        p->stmt.s.symbol.name[MAX_TOKEN_LEN] = '\0'; // null-character
+        
+        // add this statement to prebytecode_t *b
         push_prebytecode_stmt(b, &p->stmt);
+
+        // go back to start
         p->need_new_token = 1;
         p->state = PARSER_INIT;
     } else if (p->prev_token.token_type == IDENTIFIER_TOKEN) {
+        // either an instruction or data statement
         token_t *t = &p->prev_token;
         if (strcmp(t->span, "data") == 0) {
+            // set DATA_STMT
             p->stmt.kind = DATA_STMT;
             init_data_stmt(&p->stmt.s.data);
             p->state = PARSER_SETTING_DATA;
         } else {
+            // set INSTRUCTION_STMT, and detect mnemonic
             p->stmt.kind = INSTRUCTION_STMT;
             init_instruction(&p->stmt.s.instruction);
             status = parse_instruction_mnemonic(t->span, &p->stmt.s.instruction);
@@ -76,6 +92,8 @@ static int detecting_type(parser_t *p, prebytecode_t *b) {
             }
             p->state = PARSER_FINDING_ARGUMENT;
         }
+
+        // set this to false because the p->curr_token hasn't been parsed yet
         p->need_new_token = 0;
     } else {
         __DBG("detecting_type: what is this??? %s\n", p->prev_token.span);
@@ -89,13 +107,20 @@ static int setting_data(parser_t *p, prebytecode_t *b) {
     return 0;
 }
 
+/**
+ * \brief Parse `s`, detecting which register `s` is referring to and store it
+ *        in `dest`, with `def` as the default register, data type or size.
+ *
+ * If the register `s` has a data type or size that conflicts with that in
+ * `dest`, a non-zero error code is returned.
+ */
 static int _set_register(char *s, register_arg_t *dest, register_arg_t *def) {
     int status = 0;
     register_arg_t reg = *def;
     status = parse_register(s, &reg);
     if (status) return status;
     dest->id = reg.id;
-    if (dest->type == 0xff || dest->type == reg.type) {
+    if (dest->type == UNKNOWN_TYPE || dest->type == reg.type) {
         dest->type = reg.type;
     } else {
         __DBG(
@@ -105,7 +130,7 @@ static int _set_register(char *s, register_arg_t *dest, register_arg_t *def) {
         );
         return 1;
     }
-    if (dest->size == 0xff || dest->size == reg.size) {
+    if (dest->size == UNKNOWN_SIZE || dest->size == reg.size) {
         dest->size = reg.size;
     } else {
         __DBG(
@@ -120,21 +145,25 @@ static int _set_register(char *s, register_arg_t *dest, register_arg_t *def) {
 
 static int finding_argument(parser_t *p, prebytecode_t *b) {
     int status = 0;
-    raw_mnemonic_t opcode = p->stmt.s.instruction.mnemonic;
+    raw_mnemonic_t mnemonic = p->stmt.s.instruction.mnemonic;
+
+    // default register is a uint64_t
     register_arg_t def; // default register
     def.id = UNKNOWN_REG;
     def.type = 0; // unsigned integer
     def.size = 3; // qword (64-bit)
 
-    switch (opcode) {
+    switch (mnemonic) {
     // 0 arguments
+    // these mnemonics expect no arguments after it,
+    // so it expects terminating tokens like newline or eof after the mnemonic
     case NOP_MNEMONIC: case HLT_MNEMONIC: {
         token_t *t = &p->curr_token;
         // TODO: other terminating tokens like EOF
         if (t->token_type == NEWLINE_TOKEN) {
             p->need_new_token = 1;
             // TODO: add instruction to bytecode
-            p->state = PARSER_INIT;
+            p->state = PARSER_DONE;
         } else {
             __DBG("finding_argument: invalid argument after nop/hlt: %s\n", t->span);
             return 1;
@@ -142,6 +171,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
         break;
     }
     // 1 register argument
+    // expect one register argument, then expect newline/eof
     case NOT_MNEMONIC:
     case PSH_MNEMONIC: case POP_MNEMONIC:
     case JEQ_MNEMONIC: case JNE_MNEMONIC:
@@ -152,7 +182,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
             status = _set_register(t->span, &p->stmt.s.instruction.arg_1.a.reg, &def);
             if (status) return status;
             p->need_new_token = 1;
-            p->state = PARSER_INIT; // TODO: EXPECT NEWLINE/TERMINATOR INSTEAD
+            p->state = PARSER_DONE; // TODO: EXPECT NEWLINE/TERMINATOR INSTEAD
         } else {
             __DBG("finding_argument: expected register, instead got this: %s\n", t->span);
             p->need_new_token = 0;
@@ -161,25 +191,28 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
         break;
     }
     // 2 register arguments
+    // check if arg_1 has been set, if not, parse for arg_1, then expect comma
+    // otherwise parse for arg_2, then expect terminator
     case ADD_MNEMONIC: case SUB_MNEMONIC: case MUL_MNEMONIC: case DIV_MNEMONIC:
     case AND_MNEMONIC: case IOR_MNEMONIC: case XOR_MNEMONIC:
     case SHL_MNEMONIC: case SHR_MNEMONIC: case SAL_MNEMONIC: case SAR_MNEMONIC:
     case ROL_MNEMONIC: case ROR_MNEMONIC:
     case MOV_MNEMONIC: case LDR_MNEMONIC: case STR_MNEMONIC: case XCG_MNEMONIC:
     case CMP_MNEMONIC: case JZR_MNEMONIC: case JNZ_MNEMONIC: {
-        size_t curr_reg = p->stmt.s.instruction.arg_1.a.reg.id == -1 ? 0 : 1;
+        // check if arg_1 has been set
+        size_t curr_reg = p->stmt.s.instruction.arg_1.a.reg.id == UNKNOWN_REG ? 0 : 1;
         token_t *t = &p->curr_token;
         if (t->token_type == IDENTIFIER_TOKEN) {
             register_arg_t *dest = curr_reg
-                ? &p->stmt.s.instruction.arg_1.a.reg
-                : &p->stmt.s.instruction.arg_2.a.reg;
-            status = _set_register(t->span, dest, &def);
+                ? &p->stmt.s.instruction.arg_1.a.reg  // arg_1 not set yet
+                : &p->stmt.s.instruction.arg_2.a.reg; // arg_2 not set yet
+            status = _set_register(t->span, dest, &def); // parse register
             if (status) return status;
             p->need_new_token = 1;
             if (curr_reg == 0) {
-                p->state = PARSER_AWAITING_ARG_COMMA;
+                p->state = PARSER_AWAITING_ARG_COMMA; // need arg_2 now
             } else {
-                p->state = PARSER_INIT; // TODO: EXPECT NEWLINE/TERMINATOR INSTEAD
+                p->state = PARSER_DONE; // TODO: EXPECT NEWLINE/TERMINATOR INSTEAD
             }
         } else {
             __DBG("finding_argument: expected register, instead got this: %s\n", t->span);
@@ -198,7 +231,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
     case INT_MNEMONIC:
         break;
     case INVALID_MNEMONIC: default:
-        __DBG("finding_argument: invalid opcode %d\n", opcode);
+        __DBG("finding_argument: invalid opcode %d\n", mnemonic);
     }
     return status;
 }
@@ -211,12 +244,15 @@ static int needing_section_name(parser_t *p, prebytecode_t *b) {
     int status = 0;
     token_t *t = &p->curr_token;
     if (t->token_type == IDENTIFIER_TOKEN) {
+        // init section statement
         init_section_stmt(&p->stmt.s.section);
+        // set section name
         strncpy(p->stmt.s.section.name, t->span, MAX_TOKEN_LEN+1);
         p->stmt.s.section.name[MAX_TOKEN_LEN] = '\0';
+        // add statement to prebytecode_t *b
         push_prebytecode_stmt(b, &p->stmt);
         p->need_new_token = 1;
-        p->state = PARSER_INIT;
+        p->state = PARSER_DONE; // TODO: terminating
     } else {
         __DBG("needing_section_name: not identifier token: %s\n", t->span);
         p->need_new_token = 0;
@@ -245,13 +281,16 @@ static int requiring_size(parser_t *p, prebytecode_t *b) {
 // TODO: FIND THE NEXT FUNCTION TO RUN IF p->need_new_token REMAINS FALSE
 int parse_one_token(parser_t *p, token_t *t, prebytecode_t *b) {
     int status = 0;
+    // go to start of flowchart
     if (p->state == PARSER_INIT || p->state == PARSER_DONE) {
         p->state = PARSER_GETTING_INITIAL;
     }
-    if (p->need_new_token) {
-        push_token(p, t);
-        p->need_new_token = 0;
-    }
+
+    // set p->curr_token to *t
+    push_token(p, t);
+    p->need_new_token = 0;
+
+    // traverse the flowchart until a new token is needed
     while (!(p->need_new_token)) {
         switch (p->state) {
             case PARSER_GETTING_INITIAL:
