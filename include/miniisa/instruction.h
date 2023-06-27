@@ -15,10 +15,6 @@ typedef struct miniisa_register {
 
 void reset_register(miniisa_register_t *r);
 
-miniisa_register_id_t miniisa_get_register_id(char *s);
-
-int miniisa_get_register(char *s, miniisa_register_t *reg);
-
 typedef enum miniisa_ops {
     MINIISA_OP_INVALID = -1,
     MINIISA_OP_NOP = 0,
@@ -65,8 +61,6 @@ typedef struct miniisa_instruction {
 } miniisa_instruction_t;
 
 miniisa_instruction_t *miniisa_instruction_init(miniisa_instruction_t *i);
-
-int miniisa_get_opcode(char *s, miniisa_instruction_t *i);
 
 int miniisa_instruction_to_bytes(
     miniisa_instruction_t *instruction,
