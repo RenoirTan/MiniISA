@@ -262,7 +262,16 @@ static int needing_section_name(parser_t *p, prebytecode_t *b) {
 }
 
 static int expecting_colon(parser_t *p, prebytecode_t *b) {
-    return 0;
+    int status = 0;
+    token_t *t = &p->curr_token;
+    if (t->token_type == COLON_TOKEN) {
+        p->need_new_token = 1;
+        p->state = PARSER_FINDING_ARGUMENT;
+    } else {
+        __DBG("expecting_colon: got: %s\n", t->span);
+        return 1;
+    }
+    return status;
 }
 
 static int demanding_size_comma(parser_t *p, prebytecode_t *b) {
