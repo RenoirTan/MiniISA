@@ -229,7 +229,16 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
 }
 
 static int awaiting_arg_comma(parser_t *p, prebytecode_t *b) {
-    return 0;
+    int status = 0;
+    token_t *t = &p->curr_token;
+    if (t->token_type == COMMA_TOKEN) {
+        p->need_new_token = 1;
+        p->state = PARSER_FINDING_ARGUMENT;
+    } else {
+        __DBG("awaiting_arg_comma: got: %s\n", t->span);
+        return 1;
+    }
+    return status;
 }
 
 static int needing_section_name(parser_t *p, prebytecode_t *b) {
