@@ -275,7 +275,16 @@ static int expecting_colon(parser_t *p, prebytecode_t *b) {
 }
 
 static int demanding_size_comma(parser_t *p, prebytecode_t *b) {
-    return 0;
+    int status = 0;
+    token_t *t = &p->curr_token;
+    if (t->token_type == COMMA_TOKEN) {
+        p->need_new_token = 1;
+        p->state = PARSER_REQUIRING_SIZE;
+    } else {
+        __DBG("demanding_size_comma: got: %s\n", t->span);
+        return 1;
+    }
+    return status;
 }
 
 static int requiring_size(parser_t *p, prebytecode_t *b) {
