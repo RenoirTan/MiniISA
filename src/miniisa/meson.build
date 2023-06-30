@@ -1,4 +1,4 @@
-miniisa_src = ['bytecode.c', 'instruction.c', 'section.c', 'symbol.c']
+miniisa_src = ['bytecode.c', 'data.c', 'instruction.c', 'section.c', 'symbol.c']
 miniisa_lib = shared_library(
     'miniisa',
     miniisa_src,

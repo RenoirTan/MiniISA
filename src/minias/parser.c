@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <miniisa/data.h>
 #include <miniisa/extra.h>
 #include "parser.h"
 #include "prebytecode.h"
@@ -104,7 +105,44 @@ static int detecting_type(parser_t *p, prebytecode_t *b) {
 }
 
 static int setting_data(parser_t *p, prebytecode_t *b) {
-    return 0;
+    int status = 0;
+    token_t *t = &p->curr_token;
+    if (t->token_type == INT_TOKEN) {
+        uint8_t *data = malloc(8);
+        if (!data) {
+            __DBG("setting_data: could not malloc(8) for int\n");
+            return 1;
+        }
+        memset(data, '\0', 8);
+        size_t width = 0;
+        status = miniisa_str_to_le_int(t->span, data, &width);
+        if (status) return status;
+        data_stmt_t *ds = &p->stmt.s.data;
+        ds->data = data;
+        ds->length = width;
+        ds->type = UNSIGNED_INT_TYPE; // TODO: signed int
+    } else if (t->token_type == FLOAT_TOKEN) {
+        // TODO: accept single-precision f32 floats as well
+        uint8_t *data = malloc(8);
+        if (!data) {
+            __DBG("setting_data: could not malloc(8) for float\n");
+            return 1;
+        }
+        memset(data, '\0', 8);
+        status = miniisa_str_to_float_bytes(t->span, data);
+        if (status) return status;
+        data_stmt_t *ds = &p->stmt.s.data;
+        ds->data = data;
+        ds->length = 8;
+        ds->type = FLOAT_TYPE;
+    } else {
+        __DBG("setting_data: invalid data type: %s\n", t->span);
+        p->need_new_token = 0;
+        return 1;
+    }
+    p->need_new_token = 1;
+    p->state = PARSER_DEMANDING_SIZE_COMMA;
+    return status;
 }
 
 /**

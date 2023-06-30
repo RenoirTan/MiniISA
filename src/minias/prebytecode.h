@@ -142,7 +142,9 @@ int parse_instruction_mnemonic(char *s, instruction_t *i);
 
 typedef struct data_stmt {
     uint8_t *data;
-    size_t length;
+    size_t length; // inferred
+    size_t size; // forced by programmer
+    data_type_t type; // for conversion purposes
 } data_stmt_t;
 
 data_stmt_t *init_data_stmt(data_stmt_t *d);

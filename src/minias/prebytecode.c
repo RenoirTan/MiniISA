@@ -253,6 +253,8 @@ data_stmt_t *init_data_stmt(data_stmt_t *d) {
     __MINIISA_INIT(d, data_stmt_t);
     d->data = NULL;
     d->length = 0;
+    d->size = 0;
+    d->type = UNKNOWN_TYPE;
     return d;
 }
 
