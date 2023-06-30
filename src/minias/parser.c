@@ -326,7 +326,51 @@ static int demanding_size_comma(parser_t *p, prebytecode_t *b) {
 }
 
 static int requiring_size(parser_t *p, prebytecode_t *b) {
-    return 0;
+    int status = 0;
+    token_t *t = &p->curr_token;
+    if (t->token_type == INT_TOKEN) {
+        uint64_t size = 0;
+        status = miniisa_str_to_uint64(t->span, &size);
+        if (status) {
+            __DBG("requiring_size: could not parse uint64: %s\n", t->span);
+            return 1;
+        }
+        data_stmt_t *ds = &p->stmt.s.data;
+        if (ds->type == UNSIGNED_INT_TYPE || ds->type == SIGNED_INT_TYPE) {
+            if (size != 1 && size != 2 && size != 4 && size != 8) {
+                __DBG("requiring_size: invalid size for integer: %lu\n", size);
+                return 1;
+            }
+            if (size < ds->length) {
+                __DBG(
+                    "requiring_size: size explicitly given is smaller than "
+                    "width of integer: %lu vs %lu\n",
+                    size,
+                    ds->length
+                );
+                return 1;
+            }
+            ds->size = size;
+        } else if (ds->type == FLOAT_TYPE) {
+            if (size == 4) {
+                double d;
+                memcpy(&d, ds->data, 8);
+                float f = (float) d;
+                memset(ds->data, '\0', 8);
+                memcpy(ds->data, &f, 4);
+            } else if (size != 8) {
+                __DBG("requiring_size: invalid size for float: %lu\n", size);
+                return 1;
+            }
+            ds->size = size;
+        }
+        p->need_new_token = 1;
+        p->state = PARSER_ANTICIPATING_TERMINATING;
+    } else {
+        __DBG("requiring_size: got %s\n", t->span);
+        return 1;
+    }
+    return status;
 }
 
 static int anticipating_terminating(parser_t *p, prebytecode_t *b) {
