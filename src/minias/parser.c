@@ -359,8 +359,27 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
         break;
     }
     // int mnemonic
-    case INT_MNEMONIC:
+    case INT_MNEMONIC: {
+        token_t *t = &p->curr_token;
+        if (t->token_type == INT_TOKEN) {
+            value_arg_t *arg_1 = &p->stmt.s.instruction.arg_1.a.val;
+            init_value_arg(arg_1);
+            p->stmt.s.instruction.arg_1.kind = VALUE_ARG;
+            arg_1->type = UNSIGNED_INT_TYPE;
+            arg_1->size = BYTE_SIZE;
+            size_t w = 0;
+            status = miniisa_str_to_le_int(t->span, arg_1->value, &w);
+            if (w > 1) {
+                __DBG("finding_argument: invalid interrupt code: %s\n", t->span);
+                return 1;
+            }
+            p->need_new_token = 1;
+            p->state = PARSER_ANTICIPATING_TERMINATING;
+        } else {
+            __DBG("finding_argument: int instruction got: %s\n", t->span);
+        }
         break;
+    }
     case INVALID_MNEMONIC: default:
         __DBG("finding_argument: invalid opcode %d\n", mnemonic);
     }
