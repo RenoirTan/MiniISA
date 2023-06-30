@@ -306,9 +306,9 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
                 }
                 arg_2->type = arg_1->type;
             } else if (t->token_type == FLOAT_TOKEN) {
-                if (arg_1->type == FLOAT_TOKEN) {
+                if (arg_1->type == FLOAT_TYPE) {
                     // skip
-                } else if (arg_1->type == UNKNOWN_TOKEN) {
+                } else if (arg_1->type == UNKNOWN_TYPE) {
                     arg_1->type = FLOAT_TYPE;
                 } else {
                     __DBG("finding_argument: value of set instruction is float!\n");
