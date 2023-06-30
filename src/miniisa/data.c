@@ -48,3 +48,14 @@ int miniisa_str_to_float_bytes(char *s, uint8_t *buf) {
     memcpy(buf, &flotilla, 8);
     return status;
 }
+
+// TODO: handle double outside range of float
+int miniisa_double_to_float_bytes(uint8_t *d) {
+    int status = 0;
+    double db;
+    memcpy(&db, d, 8);
+    memset(d, '\0', 8);
+    float f = (float) db;
+    memcpy(d, &f, 4);
+    return status;
+}

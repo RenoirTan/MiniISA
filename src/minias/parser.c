@@ -252,8 +252,100 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
         break;
     }
     // set mnemonic
-    case SET_MNEMONIC:
+    case SET_MNEMONIC: {
+        token_t *t = &p->curr_token;
+        register_arg_t *arg_1 = &p->stmt.s.instruction.arg_1.a.reg;
+        if (arg_1->id == UNKNOWN_REG) {
+            if (t->token_type != IDENTIFIER_TOKEN) {
+                __DBG(
+                    "finding_argument: expected register after set, but got: %s\n",
+                    t->span
+                );
+                return 1;
+            }
+            status = _set_register(t->span, arg_1, &def);
+            if (status) {
+                __DBG("finding_argument: bad register: %s\n", t->span);
+                return 1;
+            }
+            p->state = PARSER_AWAITING_ARG_COMMA;
+        } else {
+            if (t->token_type == INT_TOKEN) {
+                if (arg_1->type == UNSIGNED_INT_TYPE || arg_1->type == SIGNED_INT_TYPE) {
+                    // skip
+                } else if (arg_1->type == UNKNOWN_TYPE) {
+                    arg_1->type = SIGNED_INT_TYPE; // TODO: unsigned int
+                } else {
+                    __DBG("finding_argument: value of set instruction is int!\n");
+                    return 1;
+                }
+                value_arg_t *arg_2 = &p->stmt.s.instruction.arg_2.a.val;
+                init_value_arg(arg_2);
+                p->stmt.s.instruction.arg_2.kind = VALUE_ARG;
+                size_t w = 0;
+                status = miniisa_str_to_le_int(t->span, arg_2->value, &w);
+                if (status) {
+                    __DBG("finding_argument: could not parse integer: %s\n", t->span);
+                    return 1;
+                }
+                if (arg_1->size == BYTE_SIZE && w <= 1) {
+                    arg_2->size = 1;
+                } else if (arg_1->size == WORD_SIZE && w <= 2) {
+                    arg_2->size = 2;
+                } else if (arg_1->size == DWORD_SIZE && w <= 4) {
+                    arg_2->size = 4;
+                } else if (arg_1->size == QWORD_SIZE && w <= 8) {
+                    arg_2->size = 8;
+                } else if (arg_1->size == UNKNOWN_SIZE) {
+                    arg_1->size = QWORD_SIZE;
+                    arg_2->size = 8;
+                } else {
+                    // TODO: show number of bytes arg_1 accepts
+                    __DBG("finding_argument: parsed int (%s) has %lu bytes\n", t->span, w);
+                    return 1;
+                }
+                arg_2->type = arg_1->type;
+            } else if (t->token_type == FLOAT_TOKEN) {
+                if (arg_1->type == FLOAT_TOKEN) {
+                    // skip
+                } else if (arg_1->type == UNKNOWN_TOKEN) {
+                    arg_1->type = FLOAT_TYPE;
+                } else {
+                    __DBG("finding_argument: value of set instruction is float!\n");
+                    return 1;
+                }
+                value_arg_t *arg_2 = &p->stmt.s.instruction.arg_2.a.val;
+                init_value_arg(arg_2);
+                p->stmt.s.instruction.arg_2.kind = VALUE_ARG;
+                status = miniisa_str_to_float_bytes(t->span, arg_2->value);
+                if (status) {
+                    __DBG("finding_argument: could not parse float: %s\n", t->span);
+                }
+                arg_2->type = FLOAT_TYPE;
+                if (arg_1->size == QWORD_SIZE || arg_1->size == UNKNOWN_SIZE) {
+                    arg_1->size = QWORD_SIZE;
+                    arg_2->size = QWORD_SIZE;
+                } else if (arg_1->size == DWORD_SIZE) {
+                    miniisa_double_to_float_bytes(arg_2->value);
+                    arg_2->size = DWORD_SIZE;
+                } else {
+                    __DBG("finding_argument: invalid size for float: %d\n", arg_1->size);
+                    return 1;
+                }
+            } else if (t->token_type == IDENTIFIER_TOKEN) {
+                symbol_arg_t *arg_2 = &p->stmt.s.instruction.arg_2.a.sym;
+                init_symbol_arg(arg_2);
+                p->stmt.s.instruction.arg_2.kind = SYMBOL_ARG;
+                set_symbol_name(arg_2, t->span);
+            } else {
+                __DBG("finding_argument: unexpected token in set: %s\n", t->span);
+                return 1;
+            }
+            p->state = PARSER_ANTICIPATING_TERMINATING;
+        }
+        p->need_new_token = 1;
         break;
+    }
     // cvt mnemonic
     case CVT_MNEMONIC: {
         token_t *t = &p->curr_token;
@@ -262,7 +354,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
         status = parse_register(t->span, &reg);
         p->stmt.s.instruction.arg_1.a.reg.id = reg.id; // dest
         p->stmt.s.instruction.arg_2.a.reg = reg; // src
-        p->need_new_token = 0;
+        p->need_new_token = 1;
         p->state = PARSER_ANTICIPATING_TERMINATING;
         break;
     }
@@ -362,11 +454,8 @@ static int requiring_size(parser_t *p, prebytecode_t *b) {
             ds->size = size;
         } else if (ds->type == FLOAT_TYPE) {
             if (size == 4) {
-                double d;
-                memcpy(&d, ds->data, 8);
-                float f = (float) d;
-                memset(ds->data, '\0', 8);
-                memcpy(ds->data, &f, 4);
+                status = miniisa_double_to_float_bytes(ds->data);
+                if (status) return status;
             } else if (size != 8) {
                 __DBG("requiring_size: invalid size for float: %lu\n", size);
                 return 1;
