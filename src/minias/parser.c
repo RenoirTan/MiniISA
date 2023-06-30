@@ -255,8 +255,17 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
     case SET_MNEMONIC:
         break;
     // cvt mnemonic
-    case CVT_MNEMONIC:
+    case CVT_MNEMONIC: {
+        token_t *t = &p->curr_token;
+        register_arg_t reg;
+        init_register_arg(&reg);
+        status = parse_register(t->span, &reg);
+        p->stmt.s.instruction.arg_1.a.reg.id = reg.id; // dest
+        p->stmt.s.instruction.arg_2.a.reg = reg; // src
+        p->need_new_token = 0;
+        p->state = PARSER_ANTICIPATING_TERMINATING;
         break;
+    }
     // int mnemonic
     case INT_MNEMONIC:
         break;
