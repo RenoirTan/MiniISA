@@ -507,7 +507,7 @@ static int anticipating_terminating(parser_t *p, prebytecode_t *b) {
 }
 
 #define _RUN_PARSER_FN_SHORT_CIRCUIT(f, s, p, b) { \
-    if (!(status = f(p, b))) { \
+    if ((status = f(p, b))) { \
         return status; \
     } \
 }
