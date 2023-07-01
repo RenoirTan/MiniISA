@@ -15,3 +15,9 @@ By default, the `debug` buildtype is chosen by meson. To change it you can add t
 ```bash
 meson setup build --prefix /usr --wipe --buildtype=release
 ```
+
+Tests are disabled by default. You can enable them by passing `-Ddo_tests=true` in the "setup" command:
+
+```bash
+meson setup --prefix /usr --wipe --buildtype=debug -Ddo_tests=true build
+```
