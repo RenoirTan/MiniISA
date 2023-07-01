@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include <miniisa/config.h>
-#include "tokenizer.h"
+#include <_private/minias/tokenizer.h>
 
 typedef struct args {
     char *asm_fp;

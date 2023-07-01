@@ -3,9 +3,9 @@
 #include <string.h>
 #include <_private/miniisa/data.h>
 #include <_private/miniisa/extra.h>
-#include "parser.h"
-#include "prebytecode.h"
-#include "token.h"
+#include <_private/minias/parser.h>
+#include <_private/minias/prebytecode.h>
+#include <_private/minias/token.h>
 
 parser_t *init_parser(parser_t *p) {
     if (!p) {

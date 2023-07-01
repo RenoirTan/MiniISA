@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include <_private/miniisa/extra.h>
-#include "tokenizer.h"
+#include <_private/minias/tokenizer.h>
 
 tokenizer_t *init_tokenizer(tokenizer_t *t) {
     if (!t) {

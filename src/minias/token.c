@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "token.h"
+#include <_private/minias/token.h>
 
 token_t *init_token(token_t *token) {
     if (!token) {

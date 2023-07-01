@@ -6,7 +6,7 @@
 #include <string.h>
 #include <_private/miniisa/extra.h>
 #include <_private/miniisa/strnlen.h>
-#include "prebytecode.h"
+#include <_private/minias/prebytecode.h>
 
 register_arg_t *init_register_arg(register_arg_t *r) {
     __MINIISA_INIT(r, register_arg_t);
