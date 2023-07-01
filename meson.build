@@ -15,3 +15,8 @@ my_inc = include_directories('include')
 subdir('include/miniisa')
 subdir('src/miniisa')
 subdir('src/minias')
+
+# don't build tests if subproject
+if not meson.is_subproject()
+    subdir('tests/minias')
+endif
