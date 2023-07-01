@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <miniisa/extra.h>
+#include <_private/miniisa/extra.h>
 #include <miniisa/instruction.h>
 
 void reset_register(miniisa_register_t *r) {

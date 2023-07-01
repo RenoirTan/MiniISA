@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <miniisa/extra.h>
+#include <_private/miniisa/extra.h>
 #include <miniisa/bytecode.h>
 
 static int expand_vector(void **v, size_t *length, size_t data_type_size, size_t new_length) {

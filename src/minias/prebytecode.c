@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <miniisa/extra.h>
-#include <miniisa/strnlen.h>
+#include <_private/miniisa/extra.h>
+#include <_private/miniisa/strnlen.h>
 #include "prebytecode.h"
 
 register_arg_t *init_register_arg(register_arg_t *r) {

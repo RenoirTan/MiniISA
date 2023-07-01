@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <miniisa/data.h>
+#include <_private/miniisa/data.h>
 
 int miniisa_str_to_uint64(char *s, uint64_t *out) {
     char *end = s;

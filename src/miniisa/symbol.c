@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include <miniisa/extra.h>
+#include <_private/miniisa/extra.h>
 #include <miniisa/symbol.h>
 
 miniisa_symbol_t *miniisa_symbol_init(miniisa_symbol_t *s) {

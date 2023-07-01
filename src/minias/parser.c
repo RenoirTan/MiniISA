@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <miniisa/data.h>
-#include <miniisa/extra.h>
+#include <_private/miniisa/data.h>
+#include <_private/miniisa/extra.h>
 #include "parser.h"
 #include "prebytecode.h"
 #include "token.h"
