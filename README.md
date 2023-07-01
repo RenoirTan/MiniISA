@@ -20,4 +20,5 @@ Tests are disabled by default. You can enable them by passing `-Ddo_tests=true` 
 
 ```bash
 meson setup --prefix /usr --wipe --buildtype=debug -Ddo_tests=true build
+meson compile -C build && meson test -C build
 ```
