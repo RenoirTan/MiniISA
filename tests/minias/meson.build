@@ -1,4 +1,4 @@
-test_minias_token_src = ['token.c']
+test_minias_token_src = ['test_token.cpp']
 test_minias_token_exe = executable(
     'test_minias_token',
     test_minias_token_src,
