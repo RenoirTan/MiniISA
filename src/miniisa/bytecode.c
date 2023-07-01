@@ -6,12 +6,12 @@
 
 static int expand_vector(void **v, size_t *length, size_t data_type_size, size_t new_length) {
     if (new_length <= *length) {
-        __DBG("new_length <= *length r u srs\n");
+        __ERR("expand_vector: new_length (%zu) <= *length (%zu)\n", new_length, *length);
         return 1;
     }
     void *n = realloc(*v, data_type_size * new_length);
     if (!n) {
-        __DBG("expand_vector could not realloc more memory\n");
+        __ERR("expand_vector: could not realloc more memory\n");
         return 2;
     }
     *v = n;

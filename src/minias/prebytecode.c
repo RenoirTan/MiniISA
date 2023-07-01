@@ -51,7 +51,7 @@ int parse_register(char *s, register_arg_t *reg) {
     r.size = 0xff;
     r.id = parse_register_id(s);
     if (r.id < 0) {
-        __DBG("parse_register: invalid register: %s\n", s);
+        __ERR("parse_register: invalid register: %s\n", s);
         return 1;
     }
     size_t index = r.id <= 9 ? 2 : 3; // r1, ..., r9 OR r10, ..., flg
@@ -65,14 +65,14 @@ int parse_register(char *s, register_arg_t *reg) {
             case 'd': r.size = 2; break;
             case 'q': r.size = 3; break;
             default:
-                __DBG("parse_register: invalid type/size: %c\n", s[index]);
+                __ERR("parse_register: invalid type/size: %c\n", s[index]);
                 return 1;
         }
     }
     index++;
     if (s_len > index) {
         if (r.size != 0xff) {
-            __DBG("parse_register: cannot have any character after size: %s\n", s);
+            __ERR("parse_register: cannot have any character after size: %s\n", s);
             return 1;
         }
         switch (s[index]) {
@@ -81,13 +81,13 @@ int parse_register(char *s, register_arg_t *reg) {
             case 'd': r.size = 2; break;
             case 'q': r.size = 3; break;
             default:
-                __DBG("parse_register: invalid size: %c\n", s[index]);
+                __ERR("parse_register: invalid size: %c\n", s[index]);
                 return 1;
         }
     }
     index++;
     if (s_len > index) {
-        __DBG("parse_register: register identifier too long!: %s\n", s);
+        __ERR("parse_register: register identifier too long!: %s\n", s);
         return 1;
     }
     reg->id = r.id;
@@ -159,7 +159,7 @@ static int match_mnemonic(
                 case 'i': rtype = 1; break;
                 case 'f': rtype = 2; break;
                 default:
-                    __DBG("invalid type char: %c\n", tchar);
+                    __ERR("invalid type char: %c\n", tchar);
                     return 1;
             }
         }
@@ -173,7 +173,7 @@ static int match_mnemonic(
                 case '\0': case 'q':
                     rsize = 3; break;
                 default:
-                    __DBG("invalid size char: %c\n", schar);
+                    __ERR("invalid size char: %c\n", schar);
                     return 1;
             }
         }

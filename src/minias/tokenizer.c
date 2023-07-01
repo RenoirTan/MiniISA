@@ -247,7 +247,7 @@ int get_next_token(tokenizer_t *t, token_t *token) {
             go_on = 0;
             break;
         default:
-            __DBG("get_next_token: fuck -> %i\n", t->detected_token_type);
+            __ERR("get_next_token: fuck -> %i\n", t->detected_token_type);
             return 255;
         }
     }

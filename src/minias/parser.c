@@ -45,7 +45,7 @@ static int getting_initial(parser_t *p, prebytecode_t *b) {
         p->need_new_token = 1;
         break;
     default:
-        __DBG("getting_identifier: not identifier token: %s\n", t->span);
+        __ERR("getting_identifier: not identifier token: %s\n", t->span);
         p->need_new_token = 0;
         status = 1;
     }
@@ -85,10 +85,10 @@ static int detecting_type(parser_t *p, prebytecode_t *b) {
             init_instruction(&p->stmt.s.instruction);
             status = parse_instruction_mnemonic(t->span, &p->stmt.s.instruction);
             if (status < 0) {
-                __DBG("detecting_type: unknown mnemonic: %s\n", t->span);
+                __ERR("detecting_type: unknown mnemonic: %s\n", t->span);
                 return status;
             } else if (status > 0) {
-                __DBG("detecting_type: an error occurred parsing instruction: %s\n", t->span);
+                __ERR("detecting_type: an error occurred parsing instruction: %s\n", t->span);
                 return status;
             }
             p->state = PARSER_FINDING_ARGUMENT;
@@ -97,7 +97,7 @@ static int detecting_type(parser_t *p, prebytecode_t *b) {
         // set this to false because the p->curr_token hasn't been parsed yet
         p->need_new_token = 0;
     } else {
-        __DBG("detecting_type: what is this??? %s\n", p->prev_token.span);
+        __ERR("detecting_type: what is this??? %s\n", p->prev_token.span);
         p->need_new_token = 0;
         status = 1;
     }
@@ -110,7 +110,7 @@ static int setting_data(parser_t *p, prebytecode_t *b) {
     if (t->token_type == INT_TOKEN) {
         uint8_t *data = malloc(8);
         if (!data) {
-            __DBG("setting_data: could not malloc(8) for int\n");
+            __ERR("setting_data: could not malloc(8) for int\n");
             return 1;
         }
         memset(data, '\0', 8);
@@ -125,7 +125,7 @@ static int setting_data(parser_t *p, prebytecode_t *b) {
         // TODO: accept single-precision f32 floats as well
         uint8_t *data = malloc(8);
         if (!data) {
-            __DBG("setting_data: could not malloc(8) for float\n");
+            __ERR("setting_data: could not malloc(8) for float\n");
             return 1;
         }
         memset(data, '\0', 8);
@@ -136,7 +136,7 @@ static int setting_data(parser_t *p, prebytecode_t *b) {
         ds->length = 8;
         ds->type = FLOAT_TYPE;
     } else {
-        __DBG("setting_data: invalid data type: %s\n", t->span);
+        __ERR("setting_data: invalid data type: %s\n", t->span);
         p->need_new_token = 0;
         return 1;
     }
@@ -161,7 +161,7 @@ static int _set_register(char *s, register_arg_t *dest, register_arg_t *def) {
     if (dest->type == UNKNOWN_TYPE || dest->type == reg.type) {
         dest->type = reg.type;
     } else {
-        __DBG(
+        __ERR(
             "_set_register: conflicting register types: %u vs %u\n",
             dest->type,
             reg.type
@@ -171,7 +171,7 @@ static int _set_register(char *s, register_arg_t *dest, register_arg_t *def) {
     if (dest->size == UNKNOWN_SIZE || dest->size == reg.size) {
         dest->size = reg.size;
     } else {
-        __DBG(
+        __ERR(
             "_set_register: conflicting register sizes: %u vs %u\n",
             dest->size,
             reg.size
@@ -214,7 +214,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
             p->need_new_token = 1;
             p->state = PARSER_ANTICIPATING_TERMINATING;
         } else {
-            __DBG("finding_argument: expected register, instead got this: %s\n", t->span);
+            __ERR("finding_argument: expected register, instead got this: %s\n", t->span);
             p->need_new_token = 0;
             return 1;
         }
@@ -245,7 +245,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
                 p->state = PARSER_ANTICIPATING_TERMINATING; // arg_2 done
             }
         } else {
-            __DBG("finding_argument: expected register, instead got this: %s\n", t->span);
+            __ERR("finding_argument: expected register, instead got this: %s\n", t->span);
             p->need_new_token = 0;
             return 1;
         }
@@ -257,7 +257,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
         register_arg_t *arg_1 = &p->stmt.s.instruction.arg_1.a.reg;
         if (arg_1->id == UNKNOWN_REG) {
             if (t->token_type != IDENTIFIER_TOKEN) {
-                __DBG(
+                __ERR(
                     "finding_argument: expected register after set, but got: %s\n",
                     t->span
                 );
@@ -265,7 +265,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
             }
             status = _set_register(t->span, arg_1, &def);
             if (status) {
-                __DBG("finding_argument: bad register: %s\n", t->span);
+                __ERR("finding_argument: bad register: %s\n", t->span);
                 return 1;
             }
             p->state = PARSER_AWAITING_ARG_COMMA;
@@ -276,7 +276,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
                 } else if (arg_1->type == UNKNOWN_TYPE) {
                     arg_1->type = SIGNED_INT_TYPE; // TODO: unsigned int
                 } else {
-                    __DBG("finding_argument: value of set instruction is int!\n");
+                    __ERR("finding_argument: value of set instruction is int!\n");
                     return 1;
                 }
                 value_arg_t *arg_2 = &p->stmt.s.instruction.arg_2.a.val;
@@ -285,7 +285,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
                 size_t w = 0;
                 status = miniisa_str_to_le_int(t->span, arg_2->value, &w);
                 if (status) {
-                    __DBG("finding_argument: could not parse integer: %s\n", t->span);
+                    __ERR("finding_argument: could not parse integer: %s\n", t->span);
                     return 1;
                 }
                 if (arg_1->size == BYTE_SIZE && w <= 1) {
@@ -301,7 +301,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
                     arg_2->size = 8;
                 } else {
                     // TODO: show number of bytes arg_1 accepts
-                    __DBG("finding_argument: parsed int (%s) has %lu bytes\n", t->span, w);
+                    __ERR("finding_argument: parsed int (%s) has %lu bytes\n", t->span, w);
                     return 1;
                 }
                 arg_2->type = arg_1->type;
@@ -311,7 +311,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
                 } else if (arg_1->type == UNKNOWN_TYPE) {
                     arg_1->type = FLOAT_TYPE;
                 } else {
-                    __DBG("finding_argument: value of set instruction is float!\n");
+                    __ERR("finding_argument: value of set instruction is float!\n");
                     return 1;
                 }
                 value_arg_t *arg_2 = &p->stmt.s.instruction.arg_2.a.val;
@@ -319,7 +319,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
                 p->stmt.s.instruction.arg_2.kind = VALUE_ARG;
                 status = miniisa_str_to_float_bytes(t->span, arg_2->value);
                 if (status) {
-                    __DBG("finding_argument: could not parse float: %s\n", t->span);
+                    __ERR("finding_argument: could not parse float: %s\n", t->span);
                 }
                 arg_2->type = FLOAT_TYPE;
                 if (arg_1->size == QWORD_SIZE || arg_1->size == UNKNOWN_SIZE) {
@@ -329,7 +329,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
                     miniisa_double_to_float_bytes(arg_2->value);
                     arg_2->size = DWORD_SIZE;
                 } else {
-                    __DBG("finding_argument: invalid size for float: %d\n", arg_1->size);
+                    __ERR("finding_argument: invalid size for float: %d\n", arg_1->size);
                     return 1;
                 }
             } else if (t->token_type == IDENTIFIER_TOKEN) {
@@ -338,7 +338,7 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
                 p->stmt.s.instruction.arg_2.kind = SYMBOL_ARG;
                 set_symbol_name(arg_2, t->span);
             } else {
-                __DBG("finding_argument: unexpected token in set: %s\n", t->span);
+                __ERR("finding_argument: unexpected token in set: %s\n", t->span);
                 return 1;
             }
             p->state = PARSER_ANTICIPATING_TERMINATING;
@@ -370,18 +370,18 @@ static int finding_argument(parser_t *p, prebytecode_t *b) {
             size_t w = 0;
             status = miniisa_str_to_le_int(t->span, arg_1->value, &w);
             if (w > 1) {
-                __DBG("finding_argument: invalid interrupt code: %s\n", t->span);
+                __ERR("finding_argument: invalid interrupt code: %s\n", t->span);
                 return 1;
             }
             p->need_new_token = 1;
             p->state = PARSER_ANTICIPATING_TERMINATING;
         } else {
-            __DBG("finding_argument: int instruction got: %s\n", t->span);
+            __ERR("finding_argument: int instruction got: %s\n", t->span);
         }
         break;
     }
     case INVALID_MNEMONIC: default:
-        __DBG("finding_argument: invalid opcode %d\n", mnemonic);
+        __ERR("finding_argument: invalid opcode %d\n", mnemonic);
     }
     return status;
 }
@@ -393,7 +393,7 @@ static int awaiting_arg_comma(parser_t *p, prebytecode_t *b) {
         p->need_new_token = 1;
         p->state = PARSER_FINDING_ARGUMENT;
     } else {
-        __DBG("awaiting_arg_comma: got: %s\n", t->span);
+        __ERR("awaiting_arg_comma: got: %s\n", t->span);
         return 1;
     }
     return status;
@@ -413,7 +413,7 @@ static int needing_section_name(parser_t *p, prebytecode_t *b) {
         p->need_new_token = 1;
         p->state = PARSER_ANTICIPATING_TERMINATING;
     } else {
-        __DBG("needing_section_name: not identifier token: %s\n", t->span);
+        __ERR("needing_section_name: not identifier token: %s\n", t->span);
         p->need_new_token = 0;
     }
     return status;
@@ -426,7 +426,7 @@ static int expecting_colon(parser_t *p, prebytecode_t *b) {
         p->need_new_token = 1;
         p->state = PARSER_FINDING_ARGUMENT;
     } else {
-        __DBG("expecting_colon: got: %s\n", t->span);
+        __ERR("expecting_colon: got: %s\n", t->span);
         return 1;
     }
     return status;
@@ -439,7 +439,7 @@ static int demanding_size_comma(parser_t *p, prebytecode_t *b) {
         p->need_new_token = 1;
         p->state = PARSER_REQUIRING_SIZE;
     } else {
-        __DBG("demanding_size_comma: got: %s\n", t->span);
+        __ERR("demanding_size_comma: got: %s\n", t->span);
         return 1;
     }
     return status;
@@ -452,17 +452,17 @@ static int requiring_size(parser_t *p, prebytecode_t *b) {
         uint64_t size = 0;
         status = miniisa_str_to_uint64(t->span, &size);
         if (status) {
-            __DBG("requiring_size: could not parse uint64: %s\n", t->span);
+            __ERR("requiring_size: could not parse uint64: %s\n", t->span);
             return 1;
         }
         data_stmt_t *ds = &p->stmt.s.data;
         if (ds->type == UNSIGNED_INT_TYPE || ds->type == SIGNED_INT_TYPE) {
             if (size != 1 && size != 2 && size != 4 && size != 8) {
-                __DBG("requiring_size: invalid size for integer: %lu\n", size);
+                __ERR("requiring_size: invalid size for integer: %lu\n", size);
                 return 1;
             }
             if (size < ds->length) {
-                __DBG(
+                __ERR(
                     "requiring_size: size explicitly given is smaller than "
                     "width of integer: %lu vs %lu\n",
                     size,
@@ -476,7 +476,7 @@ static int requiring_size(parser_t *p, prebytecode_t *b) {
                 status = miniisa_double_to_float_bytes(ds->data);
                 if (status) return status;
             } else if (size != 8) {
-                __DBG("requiring_size: invalid size for float: %lu\n", size);
+                __ERR("requiring_size: invalid size for float: %lu\n", size);
                 return 1;
             }
             ds->size = size;
@@ -484,7 +484,7 @@ static int requiring_size(parser_t *p, prebytecode_t *b) {
         p->need_new_token = 1;
         p->state = PARSER_ANTICIPATING_TERMINATING;
     } else {
-        __DBG("requiring_size: got %s\n", t->span);
+        __ERR("requiring_size: got %s\n", t->span);
         return 1;
     }
     return status;
@@ -500,7 +500,7 @@ static int anticipating_terminating(parser_t *p, prebytecode_t *b) {
         break;
     }
     default:
-        __DBG("anticipating_terminating: got '%s'\n", t->span);
+        __ERR("anticipating_terminating: got '%s'\n", t->span);
         return 1;
     }
     return status;
@@ -558,7 +558,7 @@ int parse_one_token(parser_t *p, token_t *t, prebytecode_t *b) {
                 _RUN_PARSER_FN_SHORT_CIRCUIT(anticipating_terminating, status, p, b);
                 break;
             default:
-                __DBG("what the fuck is this parser state: %d\n", p->state);
+                __ERR("what the fuck is this parser state: %d\n", p->state);
                 return 1;
         }
     }
