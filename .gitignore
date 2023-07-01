@@ -1,3 +1,4 @@
 /builddir
 /.vscode
 /.ccls-cache
+/subprojects
