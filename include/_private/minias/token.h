@@ -4,6 +4,10 @@
 #   include <stddef.h>
 #   include <stdint.h>
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 #   define MAX_TOKEN_LEN 255
 
 typedef enum token_type {
@@ -30,5 +34,9 @@ token_t *init_token(token_t *token);
 token_t *copy_token(token_t *dest, token_t *src);
 
 int make_eof_token(token_t *token);
+
+#   ifdef __cplusplus
+}
+#   endif
 
 #endif

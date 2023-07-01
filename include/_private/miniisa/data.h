@@ -4,6 +4,10 @@
 #   include <stddef.h>
 #   include <stdint.h>
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 int miniisa_str_to_uint64(char *s, uint64_t *out);
 
 /**
@@ -18,5 +22,9 @@ int miniisa_str_to_double(char *s, double *out);
 int miniisa_str_to_float_bytes(char *s, uint8_t *buf);
 
 int miniisa_double_to_float_bytes(uint8_t *d);
+
+#   ifdef __cplusplus
+}
+#   endif
 
 #endif

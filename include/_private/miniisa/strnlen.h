@@ -4,6 +4,10 @@
 #   include <stddef.h>
 #   include <string.h>
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 #   ifndef strnlen
 
 static size_t strnlen(char *s, size_t n) {
@@ -14,6 +18,10 @@ static size_t strnlen(char *s, size_t n) {
     return n;
 }
 
+#   endif
+
+#   ifdef __cplusplus
+}
 #   endif
 
 #endif

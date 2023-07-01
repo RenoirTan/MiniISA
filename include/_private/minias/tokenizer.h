@@ -7,6 +7,10 @@
 
 #   include "token.h"
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 #   define MAX_BUFFER_LEN 255
 
 #   define NO_LAST_CHAR (-255)
@@ -42,5 +46,9 @@ tokenizer_t *init_tokenizer(tokenizer_t *t);
 FILE *set_tokenizer_file(tokenizer_t *t, FILE *f);
 
 int get_next_token(tokenizer_t *t, token_t *token);
+
+#   ifdef __cplusplus
+}
+#   endif
 
 #endif

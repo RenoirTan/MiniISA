@@ -3,6 +3,10 @@
 
 #   include <stddef.h>
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 #   define MINIISA_SYMBOL_NAME_MAX_LEN (255)
 
 // unit of data, like a function, constant or "static" variable
@@ -16,5 +20,9 @@ miniisa_symbol_t *miniisa_symbol_init(miniisa_symbol_t *s);
 
 // truncated to 255 bytes plus null byte
 size_t miniisa_symbol_set_name(miniisa_symbol_t *s, char *name);
+
+#   ifdef __cplusplus
+}
+#   endif
 
 #endif

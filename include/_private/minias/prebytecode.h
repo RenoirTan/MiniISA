@@ -5,6 +5,10 @@
 #   include <stdint.h>
 #   include "token.h"
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 typedef enum data_type {
     UNSIGNED_INT_TYPE = 0,
     SIGNED_INT_TYPE = 1,
@@ -186,5 +190,9 @@ prebytecode_t *init_prebytecode(prebytecode_t *p);
 int set_prebytecode_capacity(prebytecode_t *p, size_t new_cap);
 
 int push_prebytecode_stmt(prebytecode_t *p, statement_t *s);
+
+#   ifdef __cplusplus
+}
+#   endif
 
 #endif

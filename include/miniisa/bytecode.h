@@ -6,6 +6,10 @@
 #   include <miniisa/section.h>
 #   include <miniisa/symbol.h>
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 #   define MINIISA_BYTECODE_LABEL_MAX_LEN (255)
 
 // a bytecode object file, stores sections and symbols
@@ -35,5 +39,9 @@ int miniisa_bytecode_terminate_last_section(miniisa_bytecode_t *b);
 int miniisa_bytecode_new_symbol(miniisa_bytecode_t *b, miniisa_symbol_t *s);
 
 int miniisa_bytecode_terminate_last_symbol(miniisa_bytecode_t *b);
+
+#   ifdef __cplusplus
+}
+#   endif
 
 #endif

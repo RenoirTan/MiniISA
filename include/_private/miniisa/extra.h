@@ -3,6 +3,10 @@
 
 #   include <miniisa/config.h>
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 #   ifdef MINIISA_DEBUG
 #       define __DBG(...) (printf(__VA_ARGS__))
 #   else
@@ -17,5 +21,9 @@
 }
 
 #   define __ERR(...) (fprintf(stderr, __VA_ARGS__))
+
+#   ifdef __cplusplus
+}
+#   endif
 
 #endif

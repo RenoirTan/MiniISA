@@ -5,6 +5,10 @@
 #   include "prebytecode.h"
 #   include "token.h"
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 #   define PARSER_DATA_MAX_LEN (1024)
 
 typedef enum parser_state {
@@ -120,5 +124,9 @@ typedef struct parser {
 parser_t *init_parser(parser_t *p);
 
 int parse_one_token(parser_t *p, token_t *t, prebytecode_t *b);
+
+#   ifdef __cplusplus
+}
+#   endif
 
 #endif

@@ -5,6 +5,10 @@
 #   include <stdint.h>
 #   include <miniisa/symbol.h>
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 #   define MINIISA_SECTION_NAME_MAX_LEN (255)
 
 // a collection of symbols, used to categorise data as well as manage
@@ -22,5 +26,9 @@ typedef struct miniisa_section {
 miniisa_section_t *miniisa_section_init(miniisa_section_t *s);
 
 size_t miniisa_section_set_name(miniisa_section_t *s, char *name);
+
+#   ifdef __cplusplus
+}
+#   endif
 
 #endif

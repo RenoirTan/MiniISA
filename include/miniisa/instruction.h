@@ -3,6 +3,10 @@
 
 #   include <stdint.h>
 
+#   ifdef __cplusplus
+extern "C" {
+#   endif
+
 typedef int16_t miniisa_register_id_t;
 typedef uint8_t miniisa_register_type_t;
 typedef uint8_t miniisa_register_size_t;
@@ -73,5 +77,9 @@ int miniisa_bytes_to_instruction(
     const char *end,
     miniisa_instruction_t *instruction
 );
+
+#   ifdef __cplusplus
+}
+#   endif
 
 #endif
