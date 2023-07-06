@@ -12,7 +12,7 @@ my_version = meson.project_version()
 
 do_tests = get_option('do_tests')
 
-my_inc = include_directories('include')
+my_inc = [include_directories('include')]
 
 subdir('include/miniisa')
 subdir('src/miniisa')
@@ -21,6 +21,8 @@ subdir('src/minias')
 # don't build tests if subproject
 if (not meson.is_subproject()) and do_tests
     catch2 = subproject('catch2')
+    my_inc += include_directories('tests/include')
     catch2_dep = catch2.get_variable('catch2_with_main_dep')
     subdir('tests/minias')
+    subdir('tests/include/_test')
 endif

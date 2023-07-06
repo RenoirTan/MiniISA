@@ -1,0 +1,8 @@
+#ifndef MINITEST_CONFIG_H
+#   define MINITEST_CONFIG_H
+
+#mesondefine MINITEST_PROJ_ROOT
+#mesondefine MINITEST_TEST_DIR
+#mesondefine MINITEST_FODDER_DIR
+
+#endif
