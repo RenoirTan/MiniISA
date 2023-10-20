@@ -1,0 +1,135 @@
+main:
+    pshq rbp
+    movq rbp, rsp
+
+    setiq r0, 10
+    setiq r1, 1
+    setiq r2, 2
+    setiq r3, 3
+    setiq r4, 4
+    setiq r5, 5
+    setiq r6, 10
+    pshq r6
+    setiq r6, 9
+    pshq r6
+    setiq r6, 8
+    pshq r6
+    setiq r6, 7
+    pshq r6
+    setiq r6, 6
+    pshq r6
+    
+    ; call sum
+    movq r6, rip ; 0-2
+    setuq r7, 26 ; 2-12
+    adduq r6, r7 ; 12-14
+    pshq r6 ; 14-16
+    setuq rip, sum ; 16-26
+
+    ; assert r0 == 55, somehow
+
+    movq rsp, rbp
+    popq rbp
+    popq rip
+
+sum:
+    pshq rbp,
+    movq rbp, rsp
+
+    ; callee-saved registers
+    pshq r8 ; rbp-8
+    pshq r9 ; rbp-16
+    pshq r10 ; rbp-24
+    pshq r11 ; rbp-32
+
+    subuq rsp, 64
+    movq r6, rbp
+    setuq r7, 32
+    subuq r6, r7
+    setuq r7, 8
+
+    subuq r6, r7
+    strq r6, r5 ; rbp-40
+    subuq r6, r7
+    strq r6, r4 ; rbp-48
+    subuq r6, r7
+    strq r6, r3 ; rbp-56
+    subuq r6, r7
+    strq r6, r2 ; rbp-64
+    subuq r6, r7
+    strq r6, r1 ; rbp-72
+    subuq r6, r7
+    strq r6, r0 ; rbp-80
+
+    setuq r8, 0
+    subuq r6, r7
+    strq r6, r8 ; rbp-88, sum
+    subuq r6, r7
+    strq r6, r8 ; rbp-96, index
+
+    setuq r7, 40
+    movq r11, rbp
+    subuq r11, r7 ; pointer to argument r5 (rbp-40)
+    setuq r7, 72
+    movq r10, rbp
+    subuq r10, r7 ; pointer to argument r1 (rbp-72)
+
+__sum__0:
+    setuq r7, 96
+    movq r9, rbp
+    subuq r9, r7 ; rbp-96
+    ldrq r8, r9 ; index
+    cmpuq r8, r0 ; compare index, total_args
+    setuq r7, __sum__3
+    jge r7 ; break out of loop to __sum__3
+
+    setuq r6, 1
+    adduq r8, r6 ; increment index
+    strq r9, r8 ; store index in stack
+
+    setuq r7, 88
+    movq r9, rbp
+    subuq r9, r7 ; rbp-88
+    ldrq r8, r9 ; sum
+    ldrq r6, r10 ; argument
+    addiq r8, r6 ; add argument
+    strq r9, r8 ; store sum
+
+    ; next argument
+    cmpuq r10, r11
+    setuq r7, __sum__1
+    jeq r7
+    setuq r7, 8
+    adduq r10, r7 ; next argument
+    setuq r7, __sum__2
+    setuq r6, 0
+    jzruq r6, r7 ; jump to __sum__2
+
+__sum__1:
+    setuq r7, 16 ; 7th argument onwards
+    movq r10, rbp
+    adduq r10, r7
+
+__sum__2:
+    setuq r7, __sum__0
+    setuq r6, 0
+    jzruq r6, r7 ; jump to __sum__0
+
+__sum__3:
+
+    setuq r7, 88
+    movq r6, rbp
+    subuq r6, r7
+    ldrq r0, r6 ; return value
+
+    adduq rsp, 64
+
+    ; callee-saved register
+    popq r11
+    popq r10
+    popq r9
+    popq r8
+
+    movq rsp, rbp
+    popq rbp
+    popq rip
