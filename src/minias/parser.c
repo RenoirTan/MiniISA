@@ -558,7 +558,7 @@ int parse_one_token(parser_t *p, token_t *t, prebytecode_t *b) {
                 _RUN_PARSER_FN_SHORT_CIRCUIT(anticipating_terminating, status, p, b);
                 break;
             default:
-                __ERR("what the fuck is this parser state: %d\n", p->state);
+                __ERR("what even is this parser state: %d\n", p->state);
                 return 1;
         }
     }
